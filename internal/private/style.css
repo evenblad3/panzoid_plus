@@ -1,0 +1,325 @@
+:root {
+    --panel: #2a2a2a;
+    --header: #222;
+    --line: #242424;
+    --hover: #2f2f2f;
+    --accent: #384668;
+    --text: #ccc;
+    --dim: #969696;
+}
+
+* {
+    box-sizing: border-box;
+    border-radius: 0;
+    outline: 0;
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var( --header );
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+.no_select {
+    user-select: none;
+}
+
+body {
+    width: 360px;
+    margin: 0;
+    overflow: hidden;
+
+    background: var( --panel );
+    color: var( --text );
+
+    font-family: "Source Code Pro", ui-monospace, Consolas, monospace;
+    font-size: 16px;
+}
+
+button,
+input {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    cursor: default;
+    border: 2px solid transparent;
+    background: transparent;
+}
+
+button:focus,
+input:focus,
+.tweak:focus-within {
+    border-color: var( --accent );
+}
+
+.rail_on:focus {
+    border-color: #717171;
+}
+
+.page {
+    min-height: 420px;
+    max-height: 560px;
+    margin-right: 36px;
+    overflow-y: scroll;
+}
+
+.rail {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 36px;
+
+    background: #000;
+}
+
+.rail_button {
+    display: block;
+    width: 100%;
+    height: 86px;
+    padding: 0;
+
+    color: #dadada;
+    font-size: 15px;
+    writing-mode: vertical-rl;
+}
+
+.rail_on {
+    background: var( --accent );
+}
+
+.title_row,
+.group_name,
+.tweak_note,
+.effect_button,
+.tweak {
+    padding: 5px 9px;
+    border-bottom: 1px solid var( --line );
+}
+
+.title_row,
+.group_name {
+    background: var( --header );
+}
+
+.title_row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    margin: 0;
+    font-size: 18px;
+    font-weight: normal;
+}
+
+.readme {
+    padding: 5px 9px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.readme p {
+    margin: 0 0 10px;
+    color: var( --dim );
+}
+
+.drop_zone {
+    margin: 9px;
+    padding: 26px 9px;
+
+    color: var( --dim );
+    text-align: center;
+    border: 2px dashed #4a4a4a;
+}
+
+.drop_zone:hover,
+.drop_on {
+    color: var( --text );
+    border-color: var( --accent );
+    background: var( --hover );
+}
+
+.inspect_summary {
+    padding: 5px 9px;
+
+    color: var( --text );
+    font-size: 14px;
+    border-bottom: 1px solid var( --line );
+}
+
+.tree {
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.node {
+    padding-right: 9px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.entry {
+    margin-top: 5px;
+
+    background: var( --header );
+    border-bottom: 1px solid var( --line );
+}
+
+.node_name {
+    color: var( --text );
+}
+
+.node_value {
+    color: var( --dim );
+}
+
+.node_name + .node_value:before {
+    content: "  ";
+}
+
+.text_button {
+    padding: 0 6px;
+
+    color: var( --dim );
+    font-size: 14px;
+    text-decoration: underline;
+}
+
+.text_button:hover {
+    color: var( --text );
+}
+
+.review_row {
+    padding: 5px 9px;
+    text-align: center;
+    border-bottom: 1px solid var( --line );
+}
+
+.pane_off {
+    display: none;
+}
+
+.group_content {
+    display: block;
+}
+
+.search_row {
+    position: relative;
+}
+
+.match_count {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY( -50% );
+
+    color: var( --dim );
+    font-size: 14px;
+    pointer-events: none;
+}
+
+.empty {
+    padding: 18px 9px;
+
+    color: var( --dim );
+    text-align: center;
+}
+
+.search_field {
+    display: block;
+    width: 100%;
+    padding: 5px;
+    margin: 1px 0;
+    border: 2px solid #363636;
+    background: var( --panel );
+}
+
+.effect_button {
+    display: block;
+    width: 100%;
+    text-align: left;
+}
+
+.group_name:hover,
+.effect_button:hover,
+.tweak:hover {
+    background: var( --hover );
+}
+
+.effect_button:active {
+    background: #3f3f3f;
+}
+
+.effect_desc,
+.tweak_hint {
+    display: block;
+    margin-top: 5px;
+
+    color: var( --dim );
+    font-size: 14px;
+}
+
+.tweak_note {
+    color: var( --text );
+    font-size: 15px;
+    line-height: 1.45;
+    background: var( --header );
+}
+
+.tweak {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: minmax( 0, auto ) min-content;
+    align-items: center;
+    gap: 10px;
+
+    border: 2px solid transparent;
+    border-bottom-color: var( --line );
+}
+
+.tweak input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.toggle {
+    position: relative;
+
+    width: 34px;
+    height: 18px;
+
+    background: #434343;
+    border: 1px solid #363636;
+}
+
+.toggle:after {
+    content: "";
+
+    position: absolute;
+    left: 2px;
+    top: 2px;
+
+    width: 12px;
+    height: 12px;
+
+    background: var( --dim );
+}
+
+.tweak input:checked ~ .toggle {
+    background: var( --accent );
+}
+
+.tweak input:checked ~ .toggle:after {
+    left: 18px;
+    background: #dadada;
+}

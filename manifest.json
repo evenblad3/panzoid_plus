@@ -1,27 +1,95 @@
 {
     "manifest_version": 3,
-    
-    "version_name": "Release 2.0",
-    "version": "2.0",
-
-    "name": "Panzoid+",
-    "short_name": "Pz+",
-    "description": "A browser extension for Clipmaker 3 that lets you enhance your projects by adding new visual effects !",
-
+    "version_name": "2.1",
+    "version": "2.2",
+    "name": "panzoid+",
+    "short_name": "pz+",
+    "description": "a browser extension for clipmaker 3 that lets you enhance your projects by adding new visual effects !",
     "author": "WzrterFX",
-
     "icons": {
-        "128": "source/icons/128x128.png",
-
-        "48": "source/icons/48x48.png",
-        "32": "source/icons/32x32.png",
-        "16": "source/icons/16x16.png"
+        "16": "blobs/icons/16x16.png",
+        "32": "blobs/icons/32x32.png",
+        "48": "blobs/icons/48x48.png",
+        "128": "blobs/icons/128x128.png"
     },
-
     "action": {
-        "default_popup": "index.html",
-        "default_title": "Open Panzoid+"
+        "default_popup": "internal/private/panzoid_plus.html",
+        "default_title": "open panzoid+"
     },
-
-    "permissions": [ "clipboardWrite" ]
+    "permissions": [
+        "clipboardWrite",
+        "storage"
+    ],
+    "host_permissions": [
+        "https://panzoid.com/*",
+        "https://*.panzoid.com/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://panzoid.com/*",
+                "https://*.panzoid.com/*"
+            ],
+            "js": [
+                "internal/public/effect.js",
+                "internal/public/effects.js",
+                "internal/public/effects/cartoon.js",
+                "internal/public/effects/toon.js",
+                "internal/public/effects/ascii.js",
+                "internal/public/effects/halftone.js",
+                "internal/public/effects/checkerboard.js",
+                "internal/public/effects/grid.js",
+                "internal/public/effects/griddler.js",
+                "internal/public/effects/venetian_blinds.js",
+                "internal/public/effects/tint.js",
+                "internal/public/effects/color_expansion.js",
+                "internal/public/effects/leave_color.js",
+                "internal/public/effects/invert_channel.js",
+                "internal/public/effects/chromatic_aberration.js",
+                "internal/public/effects/colorisma.js",
+                "internal/public/effects/blur_bokeh.js",
+                "internal/public/effects/blur_directional_plus.js",
+                "internal/public/effects/blur_edge.js",
+                "internal/public/effects/blur_radial_plus.js",
+                "internal/public/effects/blur_vector.js",
+                "internal/public/effects/median.js",
+                "internal/public/effects/oil_paint.js",
+                "internal/public/effects/light_sweep.js",
+                "internal/public/effects/vignette.js",
+                "internal/public/effects/ghost.js",
+                "internal/public/effects/shadow_drop.js",
+                "internal/public/effects/shadow_inner.js",
+                "internal/public/effects/satin.js",
+                "internal/public/effects/ambient_occlusion.js",
+                "internal/public/effects/stroke.js",
+                "internal/public/effects/extrude.js",
+                "internal/public/effects/mirror_plus.js",
+                "internal/public/effects/turbulent_displace.js",
+                "internal/public/effects/warp_waves.js",
+                "internal/public/effects/split.js",
+                "internal/public/effects/optics_compensation.js",
+                "internal/public/effects/small_shake.js",
+                "internal/public/effects/wiggle_shake.js",
+                "internal/public/effects/left_right_shake.js",
+                "internal/public/effects/rainbow_shake.js",
+                "internal/public/effects/sharp_shake.js",
+                "internal/public/effects/zoom_shake.js",
+                "internal/private/inject.js"
+            ],
+            "run_at": "document_start",
+            "world": "MAIN",
+            "all_frames": true
+        },
+        {
+            "matches": [
+                "https://panzoid.com/*",
+                "https://*.panzoid.com/*"
+            ],
+            "js": [
+                "internal/private/bridge.js"
+            ],
+            "run_at": "document_start",
+            "all_frames": true
+        }
+    ]
 }
