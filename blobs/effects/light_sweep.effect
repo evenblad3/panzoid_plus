@@ -1,0 +1,24 @@
+uniform vec2 position;
+uniform float angle;
+uniform float width;
+uniform float feather;
+uniform float force;
+uniform vec3 tint;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+
+    float aspect = aspect_ratio();
+
+    float turn = radians( angle );
+    float cosine = cos( turn );
+    float sine = sin( turn );
+
+    vec2 from_position = ( vUv - remap( position, -1.0, 2.0 ) ) * vec2( aspect, 1.0 );
+    float across = dot( from_position, vec2( -sine, cosine ) );
+
+    float half_feather = max( feather, c_epsilon ) * 0.5;
+    float band = smoothstep( half_feather, -half_feather, abs( across ) - remap( width, 0.0, 6.0 ) * 0.025 );
+
+    gl_FragColor = texel + vec4( tint, 1.0 ) * band * remap( force, 0.0, 6.0 ) * texel.w;
+}

@@ -1,0 +1,74 @@
+const float c_epsilon = 0.000001;
+const float c_golden_angle = 2.399963;
+const float c_turn = 6.283185;
+
+const vec3 c_luma = vec3( 0.212600, 0.715200, 0.072200 );
+
+#define sample_it( it ) texture2D( tDiffuse, ( it ) * uvScale )
+#define luma_it( it ) dot( sample_it( it ).xyz, c_luma )
+
+#define remap( any, near, far ) ( ( near ) + ( ( far ) - ( near ) ) * ( any ) )
+#define remap_signed( any, far ) ( ( far ) * ( ( any ) * 2.0 - 1.0 ) )
+
+vec2 buffer_size() {
+    return gl_FragCoord.xy / max( vUv, vec2( c_epsilon ) );
+}
+
+float aspect_ratio() {
+    vec2 size = buffer_size();
+    return size.x / size.y;
+}
+
+vec2 round_offset() {
+    vec2 size = buffer_size();
+    return vec2( size.y / size.x, 1.0 );
+}
+
+vec2 round_coordinate() {
+    vec2 size = buffer_size();
+    return vec2( size.x / size.y, 1.0 );
+}
+
+vec2 texel_size() {
+    return 1.0 / max( buffer_size(), vec2( 1.0 ) );
+}
+
+float luma( vec3 tint ) {
+    return dot( tint, c_luma );
+}
+
+float dither_noise( vec2 it ) {
+    vec2 one = floor( it );
+    vec2 two = floor( it * 0.5 );
+    vec2 four = floor( it * 0.25 );
+
+    return fract( four.x * 0.5 + four.y * four.y * 0.75 ) * 0.0625
+        + fract( two.x * 0.5 + two.y * two.y * 0.75 ) * 0.25
+        + fract( one.x * 0.5 + one.y * one.y * 0.75 );
+}
+
+float stochastic_noise() {
+    vec2 at = vUv * buffer_size();
+    return fract( 52.982918 * fract( dot( at, vec2( 0.067111, 0.005837 ) ) ) );
+}
+
+float scatter( float width ) {
+    return ( stochastic_noise() - 0.5 ) * width;
+}
+
+vec2 vogel_offset( int it, float count_inverse ) {
+    float along = sqrt( ( float( it ) + 0.500000 ) * count_inverse );
+    float spin = float( it ) * c_golden_angle;
+
+    return vec2( cos( spin ), sin( spin ) ) * along;
+}
+
+vec2 vogel_scatter( int it, float count_inverse, float stochastic ) {
+    float jitter = stochastic_noise();
+
+    float along = sqrt( ( float( it ) + 0.500000
+        + ( jitter - 0.500000 ) * stochastic ) * count_inverse );
+    float spin = float( it ) * c_golden_angle + jitter * stochastic * c_turn;
+
+    return vec2( cos( spin ), sin( spin ) ) * along;
+}

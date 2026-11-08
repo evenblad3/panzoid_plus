@@ -1,0 +1,25 @@
+uniform float force;
+uniform vec2 point_a;
+uniform vec2 point_b;
+uniform float split_a;
+uniform float split_b;
+
+void main() {
+    vec2 along = remap( point_b, -1.0, 2.0 ) - remap( point_a, -1.0, 2.0 );
+    float span = max( length( along ), c_epsilon );
+    vec2 forward = along / span;
+    vec2 sideways = vec2( -forward.y, forward.x );
+
+    vec2 from_a = vUv - remap( point_a, -1.0, 2.0 );
+    float across = dot( from_a, sideways );
+    float travelled = clamp( dot( from_a, forward ) / span, 0.0, 1.0 );
+
+    float push = mix( remap( split_a, -1.0, 1.0 ), remap( split_b, -1.0, 1.0 ), travelled ) * 0.5;
+    vec2 at = vUv - sideways * ( ( across >= 0.0 ) ? push : -push );
+
+    vec4 made = ( at.x < 0.0 || at.x > 1.0 || at.y < 0.0 || at.y > 1.0 )
+        ? vec4( 0.0 )
+        : sample_it( at );
+
+    gl_FragColor = mix( sample_it( vUv ), made, clamp( force, 0.0, 1.0 ) );
+}

@@ -1,0 +1,28 @@
+uniform float force;
+uniform vec2 center;
+uniform float size;
+uniform float feather;
+uniform float stochastic;
+
+void main() {
+    vec2 round_uv = round_offset();
+
+    float away = length( vUv - remap( center, -1.0, 2.0 ) );
+    float edge = max( size, c_epsilon );
+    float soft = max( remap( feather, 0.0, 2.0 ), c_epsilon ) * edge;
+    float radius = smoothstep( edge - soft, edge + soft, away ) * remap( force, 0.0, 4.0 ) * 0.05;
+    vec2 spread = radius * round_uv;
+
+    float count_inverse = 1.0 / float( fetches );
+
+    vec4 total = vec4( 0.0 );
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        float along = sqrt( ( float( it ) + 0.5 + scatter( stochastic ) ) * count_inverse );
+        float spin = float( it ) * c_golden_angle;
+
+        total += sample_it( vUv + vec2( cos( spin ), sin( spin ) ) * along * spread );
+    }
+
+    gl_FragColor = total * count_inverse;
+}

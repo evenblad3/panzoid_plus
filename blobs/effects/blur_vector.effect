@@ -1,0 +1,41 @@
+uniform float force;
+uniform float angle;
+uniform float ridge;
+uniform float softness;
+uniform float stochastic;
+
+void main() {
+    vec2 round_uv = round_offset();
+    vec2 step_uv = max( remap( softness, 1.0, 64.0 ), 1.0 ) * texel_size();
+
+    float left = dot( sample_it( vUv - vec2( step_uv.x, 0.0 ) ).xyz, c_luma );
+    float right = dot( sample_it( vUv + vec2( step_uv.x, 0.0 ) ).xyz, c_luma );
+    float down = dot( sample_it( vUv - vec2( 0.0, step_uv.y ) ).xyz, c_luma );
+    float up = dot( sample_it( vUv + vec2( 0.0, step_uv.y ) ).xyz, c_luma );
+
+    vec2 slope = vec2( right - left, up - down );
+    float steep = length( slope );
+
+    float turn = radians( angle );
+    float cosine = cos( turn );
+    float sine = sin( turn );
+
+    vec2 way = ( steep > c_epsilon ) ? slope / steep : vec2( 0.0 );
+    way = vec2( way.x * cosine - way.y * sine, way.x * sine + way.y * cosine );
+
+    float carry = mix( 1.0, smoothstep( 0.0, 0.25, steep ), clamp( ridge, 0.0, 1.0 ) );
+    vec2 spread = way * carry * remap( force, 0.0, 200.0 ) * 0.01 * round_uv;
+
+    float count = max( float( fetches ), 2.0 );
+    float count_inverse = 1.0 / count;
+    float span_inverse = 1.0 / ( count - 1.0 );
+
+    vec4 total = vec4( 0.0 );
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        float along = ( float( it ) + scatter( stochastic ) ) * span_inverse - 0.5;
+        total += sample_it( vUv + spread * along );
+    }
+
+    gl_FragColor = total * count_inverse;
+}

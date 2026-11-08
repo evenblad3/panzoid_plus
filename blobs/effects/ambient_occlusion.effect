@@ -1,0 +1,19 @@
+uniform float force;
+uniform vec3 tint;
+uniform float radius;
+uniform float stochastic;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+
+    float count_inverse = 1.0 / float( fetches );
+    vec2 reach = remap( radius, 0.0, 6.0 ) * 0.005 * round_offset();
+
+    float around = 0.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        around += luma_it( vUv + vogel_scatter( it, count_inverse, stochastic ) * reach );
+    }
+
+    gl_FragColor = vec4( mix( texel.xyz, tint, around * count_inverse * remap( force, 0.0, 2.0 ) ), texel.w );
+}

@@ -1,12 +1,12 @@
 ( function () {
     "use strict";
 
-    const storage_key = "pz:site";
+    const storage_key = "panzoid_plus.settings";
 
     const defaults = {
-        fix_text_uv: true,
         anisotropy: true,
         better_shadows: true,
+        fix_text_uv: true,
         mount_effects: true,
         precise_values: false,
         sharp_preview: false
@@ -19,11 +19,11 @@
         if( box ) boxes[ name ] = box;
     } );
 
-    function save_settings() {
+    function save() {
         const settings = {};
 
         Object.keys( defaults ).forEach( function ( name ) {
-            settings[ name ] = boxes[ name ] ? boxes[ name ].checked : defaults[ name ];
+            settings[ name ] = boxes[ name ]? boxes[ name ].checked: defaults[ name ];
         } );
 
         chrome.storage.local.set( { [ storage_key ]: settings } );
@@ -36,7 +36,8 @@
             boxes[ name ].checked = typeof saved[ name ] === "boolean"
                 ? saved[ name ]
                 : defaults[ name ];
-            boxes[ name ].addEventListener( "change", save_settings );
+
+            boxes[ name ].addEventListener( "change", save );
         } );
     } );
 } )();

@@ -1,62 +1,42 @@
-( function() {
+( function () {
     "use strict";
 
-    const site_key = "pz:site";
-    const pending = new Map();
-    let next_id = 1;
+    const storage_key = "panzoid_plus.settings";
+    const marker = "panzoid+";
 
-    function store( settings ) {
+    const waiting = new Map();
+    let next_serial = 1;
+
+    function remember( settings ) {
         try {
-            localStorage.setItem( site_key, JSON.stringify( settings ) );
+            localStorage.setItem( storage_key, JSON.stringify( settings ) );
         } catch( error ) {}
     }
 
-    function ask_page( kind, payload, timeout = 2000 ) {
-        return new Promise( ( resolve ) => {
-            const id = next_id++;
-            const timer = setTimeout( () => {
-                pending.delete( id );
+    function ask_page( variant, payload, timeout ) {
+        return new Promise( function ( resolve ) {
+            const serial = next_serial++;
+
+            const timer = setTimeout( function () {
+                waiting.delete( serial );
                 resolve( null );
             }, timeout );
-            pending.set( id, ( data ) => {
+
+            waiting.set( serial, function ( answer ) {
                 clearTimeout( timer );
-                pending.delete( id );
-                resolve( data );
+                waiting.delete( serial );
+                resolve( answer );
             } );
-            window.postMessage( Object.assign( { __pz_plus: true, kind, id }, payload ), "*" );
+
+            window.postMessage(
+                Object.assign( { extension: marker, variant, serial }, payload ), "*" );
         } );
     }
 
     function push( settings ) {
-        store( settings );
-        return ask_page( "settings", { settings } );
+        remember( settings );
+        return ask_page( "settings", { settings }, 2000 );
     }
-
-    chrome.storage.local.get( site_key ).then( ( stored ) => {
-        const settings = stored && stored[ site_key ];
-        if( !settings ) return;
-        store( settings );
-        ask_page( "settings", { settings }, 1000 );
-        if( document.readyState === "loading" ) {
-            document.addEventListener( "DOMContentLoaded",
-                () => ask_page( "settings", { settings }, 1000 ), { once: true } );
-        }
-    } ).catch( () => { } );
-
-    chrome.storage.onChanged.addListener( ( changes, area ) => {
-        if( area !== "local" || !changes[ site_key ] ) return;
-        push( changes[ site_key ].newValue || {} );
-    } );
-
-    window.addEventListener( "message", ( event ) => {
-        if( event.source !== window ) return;
-        const message = event.data;
-        if( !message || message.__pz_plus !== true ) return;
-        if( message.kind !== "insert_result" && message.kind !== "stats_result"
-            && message.kind !== "settings_result" ) return;
-        const resolve = pending.get( message.id );
-        if( resolve ) resolve( message );
-    } );
 
     function is_editor_frame() {
         return Boolean( document.querySelector( "canvas" )
@@ -66,52 +46,112 @@
 
     function answer_delay() {
         if( is_editor_frame() ) return 0;
-        return window.top === window ? 400 : 200;
+        return window.top === window? 400: 200;
     }
 
-    function reply( respond, value ) {
+    function reply( respond, any ) {
         const wait = answer_delay();
-        if( wait === 0 ) respond( value );
-        else setTimeout( () => respond( value ), wait );
+
+        if( wait === 0 ) respond( any );
+        else setTimeout( function () { respond( any ); }, wait );
     }
 
-    chrome.runtime.onMessage.addListener( ( message, sender, respond ) => {
-        if( !message || typeof message.type !== "string" ) return undefined;
+    function read( path ) {
+        return fetch( chrome.runtime.getURL( path ) ).then( function ( answer ) {
+            return answer.text();
+        } );
+    }
 
-        if( message.type === "pz_ping" ) {
-            ask_page( "stats", {}, 800 ).then( ( result ) => {
+    function send_catalogue() {
+        read( "blobs/effects.json" ).then( function ( text ) {
+            const catalogue = JSON.parse( text );
+            const names = catalogue.map( function ( effect ) { return effect.internal; } );
+
+            const wanted = [ read( "blobs/library.effect" ) ].concat(
+                names.map( function ( name ) { return read( "blobs/effects/" + name ); } ) );
+
+            return Promise.all( wanted ).then( function ( texts ) {
+                const sources = {};
+                names.forEach( function ( name, it ) { sources[ name ] = texts[ it + 1 ]; } );
+
+                window.postMessage( {
+                    extension: marker, variant: "catalogue",
+                    parts: { catalogue, library: texts[ 0 ], sources }
+                }, "*" );
+            } );
+        } ).catch( function () {} );
+    }
+
+    send_catalogue();
+
+    chrome.storage.local.get( storage_key ).then( function ( stored ) {
+        const settings = stored && stored[ storage_key ];
+        if( !settings ) return;
+
+        remember( settings );
+        ask_page( "settings", { settings }, 1000 );
+
+        if( document.readyState === "loading" ) {
+            document.addEventListener( "DOMContentLoaded", function () {
+                ask_page( "settings", { settings }, 1000 );
+            }, { once: true } );
+        }
+    } ).catch( function () {} );
+
+    chrome.storage.onChanged.addListener( function ( changes, area ) {
+        if( area !== "local" || !changes[ storage_key ] ) return;
+        push( changes[ storage_key ].newValue || {} );
+    } );
+
+    window.addEventListener( "message", function ( event ) {
+        if( event.source !== window ) return;
+
+        const message = event.data;
+        if( !message || message.extension !== marker ) return;
+        if( !/_answer$/.test( message.variant || "" ) ) return;
+
+        const resolve = waiting.get( message.serial );
+        if( resolve ) resolve( message );
+    } );
+
+    chrome.runtime.onMessage.addListener( function ( message, sender, respond ) {
+        if( !message || typeof message.variant !== "string" ) return undefined;
+
+        if( message.variant === "status" ) {
+            ask_page( "status", {}, 800 ).then( function ( answer ) {
                 reply( respond, {
                     ok: true,
-                    injected: Boolean( result ),
+                    armed: Boolean( answer ),
                     editor: is_editor_frame(),
-                    stats: result ? result.stats : null,
-                    url: location.href,
+                    status: answer? answer.status: null,
+                    url: location.href
                 } );
             } );
             return true;
         }
 
-        if( message.type === "pz_insert" ) {
+        if( message.variant === "transfer" ) {
             if( !is_editor_frame() ) return undefined;
-            ask_page( "insert", { data: message.data }, 2500 ).then( ( result ) => {
-                if( !result ) {
+
+            ask_page( "transfer", { any: message.any }, 2500 ).then( function ( answer ) {
+                if( !answer ) {
                     respond( { ok: false, error: "the page hook did not answer" } );
                     return;
                 }
+
                 respond( {
                     ok: true,
-                    applied: Boolean( result.applied ),
-                    enabled: Boolean( result.enabled ),
-                    detail: result.detail || null,
-                    error: result.error || null,
+                    applied: Boolean( answer.applied ),
+                    detail: answer.detail || null,
+                    error: answer.error || null
                 } );
             } );
             return true;
         }
 
-        if( message.type === "pz_settings" ) {
-            push( message.settings || {} ).then( ( result ) => {
-                respond( { ok: true, applied: result ? result.applied : null } );
+        if( message.variant === "settings" ) {
+            push( message.settings || {} ).then( function ( answer ) {
+                respond( { ok: true, applied: answer? answer.applied: null } );
             } );
             return true;
         }

@@ -1,0 +1,41 @@
+uniform float force;
+uniform float red;
+uniform float green;
+uniform float blue;
+uniform float stochastic;
+
+const float c_shift_scale = 0.025000;
+
+void main() {
+    vec2 centered = vUv - vec2( 0.5 );
+    float reach = remap( force, 0.0, 8.0 ) * length( centered );
+
+    float count = max( float( fetches ), 2.0 );
+    float span_inverse = 1.0 / ( count - 1.0 );
+
+    vec3 total = vec3( 0.0 );
+    vec3 weight_total = vec3( 0.0 );
+    float alpha = 0.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        float along = ( float( it ) + scatter( stochastic ) ) * span_inverse;
+
+        float channel = ( along < 0.5 )
+            ? mix( remap( red, -1.0, 1.0 ), remap( green, -1.0, 1.0 ), along * 2.0 )
+            : mix( remap( green, -1.0, 1.0 ), remap( blue, -1.0, 1.0 ), along * 2.0 - 1.0 );
+
+        vec4 texel = sample_it( vUv + centered * channel * c_shift_scale * reach );
+
+        vec3 weight = vec3(
+            smoothstep( 0.5, 0.0, along ),
+            1.0 - abs( along * 2.0 - 1.0 ),
+            smoothstep( 0.5, 1.0, along )
+        );
+
+        total += texel.xyz * weight;
+        weight_total += weight;
+        alpha += texel.w;
+    }
+
+    gl_FragColor = vec4( total / max( weight_total, vec3( c_epsilon ) ), alpha / count );
+}

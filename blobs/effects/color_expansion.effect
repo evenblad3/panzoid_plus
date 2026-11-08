@@ -1,0 +1,7 @@
+uniform float force;
+
+void main() {
+    vec4 color = sample_it( vUv );
+
+    gl_FragColor = vec4( clamp( color.xyz * ( 1.0 + remap( force, 0.0, 2.0 ) ), 0.0, 1.0 ), color.w );
+}

@@ -1,0 +1,20 @@
+uniform float force;
+uniform vec3 tint;
+uniform vec2 center;
+uniform float size;
+uniform float feather;
+
+void main() {
+    vec4 color = sample_it( vUv );
+
+    vec2 round_uv = round_coordinate();
+
+    float radius = max( remap( size, 0.05, 1.5 ), c_epsilon ) * length( round_uv );
+    float soft = max( remap( feather, 0.01, 2.0 ), c_epsilon ) * radius;
+    float to_center = length( ( vUv - remap( center, -1.0, 2.0 ) ) * round_uv );
+
+    float fade = smoothstep( radius - soft, radius + soft, to_center )
+        * clamp( force, 0.0, 1.0 );
+
+    gl_FragColor = vec4( mix( color.xyz, tint, fade ), color.w );
+}

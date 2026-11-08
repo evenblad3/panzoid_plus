@@ -1,0 +1,35 @@
+uniform float force;
+uniform vec3 tint;
+uniform float thickness;
+uniform float feather;
+uniform float stochastic;
+
+const float c_pi_double = 6.283185;
+const float c_edge_floor = 0.120000;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+
+    vec2 round_uv = round_offset();
+
+    float here = dot( texel.xyz, c_luma );
+    float reach = remap( thickness, 0.25, 8.0 ) * 0.002;
+    vec2 spread = reach * round_uv;
+
+    float turn = c_pi_double / float( fetches );
+    float apart = 0.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        float angle = ( float( it ) + scatter( stochastic ) ) * turn;
+        vec4 near = sample_it( vUv + vec2( cos( angle ), sin( angle ) ) * spread );
+
+        apart = max( apart, abs( dot( near.xyz, c_luma ) - here ) );
+        apart = max( apart, abs( near.w - texel.w ) );
+    }
+
+    float edge = max( 1.0 - clamp( force, 0.0, 1.0 ), c_edge_floor );
+    float soft = max( remap( feather, 0.01, 1.0 ), c_epsilon ) * edge;
+    float contour = smoothstep( edge - soft, edge + soft, apart + scatter( soft ) );
+
+    gl_FragColor = vec4( mix( texel.xyz, tint, contour ), max( texel.w, contour ) );
+}

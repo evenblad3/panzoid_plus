@@ -1,4 +1,5 @@
-( function () {
+extension.ready = extension.ready || [];
+extension.ready.push( function () {
     "use strict";
 
     const field = document.querySelector( ".search_field" );
@@ -21,8 +22,8 @@
 
         document.querySelectorAll( ".effect_button" ).forEach( function ( button ) {
             const name = button.firstChild.textContent.toLowerCase();
-            const desc = button.lastElementChild ? button.lastElementChild.textContent : "";
-            const hit = !term || ( name + " " + desc.toLowerCase() ).indexOf( term ) !== -1;
+            const description = button.lastElementChild ? button.lastElementChild.textContent : "";
+            const hit = !term || ( name + " " + description.toLowerCase() ).indexOf( term ) !== -1;
 
             button.style.display = hit ? "" : "none";
             if( hit ) ++found;
@@ -32,6 +33,7 @@
             const box = title.nextElementSibling;
             const any = shown_in( box );
 
+( a )? b: c
             box.style.display = any ? "" : "none";
             title.style.display = any ? "" : "none";
         } );
@@ -67,4 +69,4 @@
 
     field.focus();
     filter();
-} )();
+} );

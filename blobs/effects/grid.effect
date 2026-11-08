@@ -1,0 +1,27 @@
+uniform vec2 anchor;
+uniform vec2 size;
+uniform float border;
+uniform float feather;
+uniform float force;
+uniform vec3 tint;
+
+void main() {
+    vec4 color = sample_it( vUv );
+
+    float aspect = aspect_ratio();
+
+    vec2 square_uv = vec2( vUv.x * aspect, vUv.y );
+    vec2 square_anchor = vec2( remap( anchor, -1.0, 2.0 ).x * aspect, remap( anchor, -1.0, 2.0 ).y );
+
+    vec2 cell = max( remap( size, 0.002, 0.5 ), vec2( c_epsilon ) );
+    vec2 inside = abs( fract( ( square_uv - square_anchor ) / cell ) - 0.5 ) * cell;
+
+    float thickness = remap( border, 0.001, 0.1 ) * 0.5;
+    float edge = max( remap( feather, 0.0, 0.05 ), c_epsilon ) * 0.5;
+
+    vec2 line = smoothstep( thickness + edge, thickness - edge, inside );
+    float ink = max( line.x, line.y );
+
+    gl_FragColor = vec4( mix( color.xyz, tint, ink * force ),
+        max( color.w, ink * force ) );
+}

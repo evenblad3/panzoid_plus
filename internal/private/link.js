@@ -5,7 +5,7 @@
         youtube_button: "https://www.youtube.com/@WzrterFX?sub_confirmation=1",
         github_button: "https://github.com/WzrterFX",
 
-        review_button: "https://chromewebstore.google.com/detail/panzoid+"
+        review_button: "https://chromewebstore.google.com/detail"
             + "/ehnkcfogapldjdcahfdhnfpddedeefpi/reviews"
     };
 
@@ -14,7 +14,7 @@
         if( !button ) return;
 
         button.addEventListener( "click", function () {
-            window.open( links[ name ], "_blank" );
+            window.open( links[ name ], "_blank", "noopener" );
         } );
     } );
 } )();

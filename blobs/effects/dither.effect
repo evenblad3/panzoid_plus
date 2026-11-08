@@ -1,0 +1,13 @@
+uniform float force;
+uniform float posterize;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+
+    float levels = exp2( mix( 8.0, 1.0, posterize ) ) - 1.0;
+    float threshold = mix( 0.5, bayer_eight( vUv * buffer_size() ), force );
+
+    vec3 made = floor( texel.xyz * levels + threshold ) / levels;
+
+    gl_FragColor = vec4( clamp( made, 0.0, 1.0 ), texel.w );
+}

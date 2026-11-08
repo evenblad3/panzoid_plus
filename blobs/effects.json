@@ -1,0 +1,499 @@
+[
+    {
+        "serial": "blur_bokeh",
+        "name": "Blur Bokeh",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "blur_bokeh.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.03125,"near":0,"far":1},
+            {"name":"highlight","variant":"number","any":0.142857,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":512,"near":8,"far":512,"fixed":true}
+        ]
+    },
+    {
+        "serial": "blur_directional_plus",
+        "name": "Blur Directional+",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "blur_directional_plus.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"direction","variant":"vec2","any":[0.5,0.75],"near":0,"far":1},
+            {"name":"highlight","variant":"number","any":0.473684,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":4,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "blur_edge",
+        "name": "Blur Edge",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "blur_edge.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"size","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":256,"near":8,"far":256,"fixed":true}
+        ]
+    },
+    {
+        "serial": "blur_radial_plus",
+        "name": "Blur Radial+",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "blur_radial_plus.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.4,"near":0,"far":1},
+            {"name":"center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"highlight","variant":"number","any":0.473684,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "blur_vector",
+        "name": "Blur Vector",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "blur_vector.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.13,"near":0,"far":1},
+            {"name":"angle","variant":"number","any":0,"near":0,"far":360},
+            {"name":"ridge","variant":"number","any":1,"near":0,"far":1},
+            {"name":"softness","variant":"number","any":0.222222,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":4,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "median",
+        "name": "Median",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "median.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"radius","variant":"number","any":0.126984,"near":0,"far":1},
+            {"name":"alpha_too","variant":"number","any":0,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "oil_paint",
+        "name": "Oil Paint",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "oil_paint.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.428571,"near":0,"far":1},
+            {"name":"sharpness","variant":"number","any":0.461538,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":49,"near":9,"far":65,"fixed":true}
+        ]
+    },
+    {
+        "serial": "tint",
+        "name": "Tint",
+        "description": "todo description",
+        "tab": "color",
+        "internal": "tint.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]}
+        ]
+    },
+    {
+        "serial": "color_expansion",
+        "name": "Color expansion",
+        "description": "todo description",
+        "tab": "color",
+        "internal": "color_expansion.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.1,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "leave_color",
+        "name": "Leave color",
+        "description": "todo description",
+        "tab": "color",
+        "internal": "leave_color.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]}
+        ]
+    },
+    {
+        "serial": "invert_channel",
+        "name": "Invert channel",
+        "description": "todo description",
+        "tab": "color",
+        "internal": "invert_channel.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]}
+        ]
+    },
+    {
+        "serial": "chromatic_aberration",
+        "name": "Chromatic aberration",
+        "description": "todo description",
+        "tab": "color",
+        "internal": "chromatic_aberration.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.125,"near":0,"far":1},
+            {"name":"red","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"green","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"blue","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":64,"near":3,"far":64,"fixed":true}
+        ]
+    },
+    {
+        "serial": "colorisma",
+        "name": "Colorisma",
+        "description": "todo description",
+        "tab": "color",
+        "internal": "colorisma.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint_shadow","variant":"color","any":[1,1,1]},
+            {"name":"tint_highlight","variant":"color","any":[1,1,1]},
+            {"name":"low","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"mid","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"high","variant":"number","any":0.75,"near":0,"far":1},
+            {"name":"saturation","variant":"number","any":0.25,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "warp_waves",
+        "name": "Warp waves",
+        "description": "todo description",
+        "tab": "distort",
+        "internal": "warp_waves.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.2,"near":0,"far":1},
+            {"name":"twist","variant":"number","any":0.345455,"near":0,"far":1},
+            {"name":"time","variant":"number","any":0,"near":0}
+        ]
+    },
+    {
+        "serial": "split",
+        "name": "Split",
+        "description": "todo description",
+        "tab": "distort",
+        "internal": "split.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"point_a","variant":"vec2","any":[0.416667,0.5],"near":0,"far":1},
+            {"name":"point_b","variant":"vec2","any":[0.583333,0.5],"near":0,"far":1},
+            {"name":"split_a","variant":"number","any":0.52,"near":0,"far":1},
+            {"name":"split_b","variant":"number","any":0.53,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "turbulent_displace",
+        "name": "Turbulent displace",
+        "description": "todo description",
+        "tab": "distort",
+        "internal": "turbulent_displace.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.125,"near":0,"far":1},
+            {"name":"size","variant":"number","any":0.246231,"near":0,"far":1},
+            {"name":"offset","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"complexity","variant":"number","any":3,"near":1,"far":8},
+            {"name":"evolution","variant":"number","any":0,"near":0},
+            {"name":"smoother","variant":"number","any":0,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "mirror_plus",
+        "name": "Mirror+",
+        "description": "todo description",
+        "tab": "distort",
+        "internal": "mirror_plus.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"segments","variant":"number","any":6,"near":1,"far":16},
+            {"name":"rotation","variant":"number","any":0,"near":0,"far":1},
+            {"name":"twist","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"offset","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"scale","variant":"vec2","any":[0.183673,0.183673],"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "optics_compensation",
+        "name": "Optics compensation",
+        "description": "todo description",
+        "tab": "distort",
+        "internal": "optics_compensation.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"angle","variant":"number","any":60,"near":0,"far":179},
+            {"name":"view_center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"reverse","variant":"number","any":0,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "griddler",
+        "name": "Griddler",
+        "description": "todo description",
+        "tab": "distort",
+        "internal": "griddler.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"stretch","variant":"vec4","any":[0.230769,0.230769,0.230769,0.230769],"near":0,"far":1},
+            {"name":"scale","variant":"number","any":0.090909,"near":0,"far":1},
+            {"name":"rotation","variant":"vec2","any":[0.5,0.5],"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "checkerboard",
+        "name": "Checkerboard",
+        "description": "todo description",
+        "tab": "generate",
+        "internal": "checkerboard.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"anchor","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"size","variant":"vec2","any":[0.096386,0.096386],"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "grid",
+        "name": "Grid",
+        "description": "todo description",
+        "tab": "generate",
+        "internal": "grid.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"anchor","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"size","variant":"vec2","any":[0.156627,0.156627],"near":0,"far":1},
+            {"name":"border","variant":"number","any":0.030303,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.04,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "venetian_blinds",
+        "name": "Venetian blinds",
+        "description": "todo description",
+        "tab": "generate",
+        "internal": "venetian_blinds.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"width","variant":"number","any":0.018036,"near":0,"far":1},
+            {"name":"angle","variant":"number","any":0,"near":0,"far":1},
+            {"name":"margin","variant":"number","any":0.555556,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "stroke",
+        "name": "Stroke",
+        "description": "todo description",
+        "tab": "generate",
+        "internal": "stroke.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"width","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.2,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":256,"near":8,"far":512,"fixed":true}
+        ]
+    },
+    {
+        "serial": "light_sweep",
+        "name": "Light sweep",
+        "description": "todo description",
+        "tab": "generate",
+        "internal": "light_sweep.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.166667,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"width","variant":"number","any":0.083333,"near":0,"far":1},
+            {"name":"angle","variant":"number","any":110,"near":0,"far":360},
+            {"name":"feather","variant":"number","any":0.2,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "shadow_drop",
+        "name": "Shadow drop",
+        "description": "todo description",
+        "tab": "perspective",
+        "internal": "shadow_drop.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[0,0,0]},
+            {"name":"angle","variant":"number","any":135,"near":0,"far":360},
+            {"name":"shift","variant":"number","any":0.04,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.08,"near":0,"far":1},
+            {"name":"grain","variant":"number","any":0,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "shadow_inner",
+        "name": "Shadow inner",
+        "description": "todo description",
+        "tab": "perspective",
+        "internal": "shadow_inner.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[0,0,0]},
+            {"name":"angle","variant":"number","any":135,"near":0,"far":360},
+            {"name":"shift","variant":"number","any":0.04,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.06,"near":0,"far":1},
+            {"name":"grain","variant":"number","any":0,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "satin",
+        "name": "Satin",
+        "description": "todo description",
+        "tab": "perspective",
+        "internal": "satin.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.333333,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"shift","variant":"number","any":0.08,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.08,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "ambient_occlusion",
+        "name": "Ambient occlusion",
+        "description": "todo description",
+        "tab": "perspective",
+        "internal": "ambient_occlusion.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[0,0,0]},
+            {"name":"radius","variant":"number","any":0.333333,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "extrude",
+        "name": "Extrude",
+        "description": "todo description",
+        "tab": "perspective",
+        "internal": "extrude.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"angle","variant":"number","any":135,"near":0,"far":360},
+            {"name":"back","variant":"number","any":0.15,"near":0,"far":1},
+            {"name":"front","variant":"number","any":0.2,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":256,"near":16,"far":256,"fixed":true}
+        ]
+    },
+    {
+        "serial": "toon",
+        "name": "Toon",
+        "description": "todo description",
+        "tab": "stylize",
+        "internal": "toon.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"saturation","variant":"number","any":1,"near":0,"far":1},
+            {"name":"portion_size","variant":"number","any":4,"near":2,"far":16},
+            {"name":"exposure","variant":"number","any":0.285714,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "dither",
+        "name": "Dither",
+        "description": "todo description",
+        "tab": "stylize",
+        "internal": "dither.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"posterize","variant":"number","any":0.6,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "ascii",
+        "name": "Ascii",
+        "description": "todo description",
+        "tab": "stylize",
+        "internal": "ascii.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"scale","variant":"number","any":0,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "halftone",
+        "name": "Halftone",
+        "description": "todo description",
+        "tab": "stylize",
+        "internal": "halftone.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.866667,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"scale","variant":"number","any":0.240506,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.1,"near":0,"far":1}
+        ]
+    },
+    {
+        "serial": "cartoon",
+        "name": "Cartoon",
+        "description": "todo description",
+        "tab": "stylize",
+        "internal": "cartoon.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.7,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"thickness","variant":"number","any":0.096774,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.292929,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":64,"near":4,"far":64,"fixed":true}
+        ]
+    },
+    {
+        "serial": "ghost",
+        "name": "Ghost",
+        "description": "todo description",
+        "tab": "stylize",
+        "internal": "ghost.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.6,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"shrink","variant":"number","any":0.736842,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.04,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":1,"far":128,"fixed":true}
+        ]
+    },
+    {
+        "serial": "vignette",
+        "name": "Vignette",
+        "description": "todo description",
+        "tab": "stylize",
+        "internal": "vignette.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[0,0,0]},
+            {"name":"center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"size","variant":"number","any":0.310345,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.246231,"near":0,"far":1}
+        ]
+    }
+]

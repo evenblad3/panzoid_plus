@@ -1,0 +1,23 @@
+uniform vec2 direction;
+uniform float force;
+uniform float highlight;
+uniform float stochastic;
+
+const float c_reach = 0.050000;
+
+void main() {
+    vec2 round_uv = round_offset();
+
+    float count = max( float( fetches ), 2.0 );
+    float count_inverse = 1.0 / count;
+    float span_inverse = 1.0 / ( count - 1.0 );
+
+    vec4 total = vec4( 0.0 );
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        float along = ( float( it ) + scatter( stochastic ) ) * span_inverse - 0.5;
+        total += sample_it( vUv + remap( direction, -1.0, 1.0 ) * along * remap( force, 0.0, 8.0 ) * c_reach * round_uv );
+    }
+
+    gl_FragColor = total * count_inverse * remap( highlight, 0.1, 2.0 );
+}

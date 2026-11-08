@@ -16,9 +16,38 @@
         "cubic out-in"
     ];
 
-    const property_types = [
+    const variant_names = [
         "number", "vector2", "vector3", "vector4", "color", "gradient",
         "option", "text", "asset", "list", "curve", "shader"
+    ];
+
+    const part_names = {
+        meta: "which Clipmaker wrote this",
+        project: "the whole project",
+        basics: "project basics, from an older save",
+        objects: "the object tree, from an older save",
+        scenes: "the scenes, from an older save",
+        layers: "the layers, from an older save",
+        fx: "the effects, from an older save",
+        camsequence: "the camera track, from an older save",
+        audio: "the audio track"
+    };
+
+    const part_prefixes = [
+        { head: "font_", says: "a font the project uses" },
+        { head: "audio_", says: "a sound the project uses" },
+        { head: "image_", says: "an image the project uses" }
+    ];
+
+    const signatures = [
+        { head: [ 0x89, 0x50, 0x4e, 0x47 ], suffix: "png" },
+        { head: [ 0xff, 0xd8, 0xff ], suffix: "jpg" },
+        { head: [ 0x49, 0x44, 0x33 ], suffix: "mp3" },
+        { head: [ 0x4f, 0x67, 0x67, 0x53 ], suffix: "ogg" },
+        { head: [ 0x52, 0x49, 0x46, 0x46 ], suffix: "wav" },
+        { head: [ 0x00, 0x01, 0x00, 0x00 ], suffix: "ttf" },
+        { head: [ 0x4f, 0x54, 0x54, 0x4f ], suffix: "otf" },
+        { head: [ 0x77, 0x4f, 0x46, 0x46 ], suffix: "woff" }
     ];
 
     const block = 512;
@@ -28,21 +57,41 @@
     const picker = document.getElementById( "drop_file" );
     const summary = document.getElementById( "inspect_summary" );
     const tree = document.getElementById( "inspect_tree" );
-    const save = document.getElementById( "inspect_save" );
 
-    let decoded = null;
-
-    function bytes_text( count ) {
+    function buffer_text( count ) {
         if( count < 1024 ) return count + " b";
         if( count < 1024 * 1024 ) return ( count / 1024 ).toFixed( 1 ) + " kb";
+
         return ( count / ( 1024 * 1024 ) ).toFixed( 1 ) + " mb";
     }
 
-    function read_field( bytes, from, length ) {
+    function part_says( name ) {
+        if( part_names[ name ] ) return part_names[ name ];
+
+        const found = part_prefixes.filter( function ( entry ) {
+            return name.indexOf( entry.head ) === 0;
+        } );
+
+        return found.length? found[ 0 ].says: "";
+    }
+
+    function suffix_of( buffer ) {
+        const found = signatures.filter( function ( entry ) {
+            return entry.head.every( function ( byte, it ) {
+                return buffer[ it ] === byte;
+            } );
+        } );
+        if( found.length ) return found[ 0 ].suffix;
+
+        const head = String.fromCharCode( buffer[ 0 ] || 0 );
+        return ( head === "{" || head === "[" )? "json": "bin";
+    }
+
+    function read_field( buffer, from, length ) {
         let out = "";
 
         for( let it = 0; it < length; it++ ) {
-            const code = bytes[ from + it ];
+            const code = buffer[ from + it ];
             if( !code ) break;
             out += String.fromCharCode( code );
         }
@@ -50,53 +99,55 @@
         return out;
     }
 
-    async function gunzip( bytes ) {
-        const stream = new Blob( [ bytes ] ).stream()
+    async function gunzip( buffer ) {
+        const stream = new Blob( [ buffer ] ).stream()
             .pipeThrough( new DecompressionStream( "gzip" ) );
+
         return new Uint8Array( await new Response( stream ).arrayBuffer() );
     }
 
-    function untar( bytes ) {
-        const entries = [];
+    function untar( buffer ) {
+        const parts = [];
         let at = 0;
 
-        while( at + block <= bytes.length ) {
-            const name = read_field( bytes, at, 100 );
+        while( at + block <= buffer.length ) {
+            const name = read_field( buffer, at, 100 );
             if( !name ) break;
 
-            const size = parseInt( read_field( bytes, at + 124, 12 ).trim(), 8 ) || 0;
-            const kind = bytes[ at + 156 ] || 48;
-            const prefix = read_field( bytes, at + 345, 155 );
+            const size = parseInt( read_field( buffer, at + 124, 12 ).trim(), 8 ) || 0;
+            const flag = buffer[ at + 156 ] || 48;
+            const folder = read_field( buffer, at + 345, 155 );
             at += block;
 
-            if( kind === 48 || kind === 0 ) {
-                entries.push( {
-                    name: ( prefix ? prefix + "/" : "" ) + name,
-                    data: bytes.subarray( at, at + size )
+            if( flag === 48 || flag === 0 ) {
+                parts.push( {
+                    name: ( folder? folder + "/": "" ) + name,
+                    buffer: buffer.subarray( at, at + size )
                 } );
             }
 
             at += Math.ceil( size / block ) * block;
         }
 
-        return entries;
+        return parts;
     }
 
-    async function open_file( bytes, filename ) {
-        if( bytes[ 0 ] === 0x1f && bytes[ 1 ] === 0x8b ) {
-            return untar( await gunzip( bytes ) );
+    async function open_file( buffer, filename ) {
+        if( buffer[ 0 ] === 0x1f && buffer[ 1 ] === 0x8b ) {
+            return untar( await gunzip( buffer ) );
         }
 
-        const head = String.fromCharCode( bytes[ 0 ] || 0 );
-        if( head === "{" || head === "[" ) return [ { name: filename, data: bytes } ];
+        const head = String.fromCharCode( buffer[ 0 ] || 0 );
+        if( head === "{" || head === "[" ) return [ { name: filename, buffer } ];
 
-        return untar( bytes );
+        return untar( buffer );
     }
 
-    function parse_json( data ) {
+    function parse_json( buffer ) {
         let text;
+
         try {
-            text = new TextDecoder( "utf-8", { fatal: true } ).decode( data );
+            text = new TextDecoder( "utf-8", { fatal: true } ).decode( buffer );
         } catch( error ) {
             return undefined;
         }
@@ -111,22 +162,22 @@
         }
     }
 
-    function is_property( value ) {
-        return Boolean( value ) && typeof value === "object"
-            && Array.isArray( value.keyframes );
+    function is_property( any ) {
+        return Boolean( any ) && typeof any === "object" && Array.isArray( any.keyframes );
     }
 
-    function show_number( value ) {
-        if( typeof value !== "number" ) return String( value );
-        return Number.isInteger( value ) ? String( value ) : value.toFixed( 3 );
+    function show_number( any ) {
+        if( typeof any !== "number" ) return String( any );
+        return Number.isInteger( any )? String( any ): any.toFixed( 3 );
     }
 
-    function show_value( value ) {
-        if( value === null || value === undefined ) return "none";
-        if( Array.isArray( value ) ) return value.map( show_number ).join( " " );
-        if( typeof value === "boolean" ) return value ? "on" : "off";
-        if( typeof value === "object" ) return "";
-        return show_number( value );
+    function show_value( any ) {
+        if( any === null || any === undefined ) return "none";
+        if( Array.isArray( any ) ) return any.map( show_number ).join( " " );
+        if( typeof any === "boolean" ) return any? "on": "off";
+        if( typeof any === "object" ) return "";
+
+        return show_number( any );
     }
 
     function easing_of( key ) {
@@ -137,7 +188,6 @@
     function describe_property( property ) {
         const keys = property.keyframes;
         if( !keys.length ) return "nothing set";
-
         if( !property.animated || keys.length === 1 ) return show_value( keys[ 0 ].value );
 
         const first = keys[ 0 ];
@@ -154,22 +204,22 @@
             + ", " + used.join( " / " );
     }
 
-    function name_of( entry ) {
-        if( !entry || typeof entry !== "object" ) return "";
+    function name_of( any ) {
+        if( !any || typeof any !== "object" ) return "";
 
-        if( typeof entry.name === "string" ) return entry.name;
-        if( is_property( entry.name ) && entry.name.keyframes.length ) {
-            return String( entry.name.keyframes[ 0 ].value );
+        if( typeof any.name === "string" ) return any.name;
+        if( is_property( any.name ) && any.name.keyframes.length ) {
+            return String( any.name.keyframes[ 0 ].value );
         }
-        if( typeof entry.baseType === "string" ) return entry.baseType;
-        if( typeof entry.type === "number" && property_types[ entry.type ] ) {
-            return property_types[ entry.type ];
+        if( typeof any.baseType === "string" ) return any.baseType;
+        if( typeof any.type === "number" && variant_names[ any.type ] ) {
+            return variant_names[ any.type ];
         }
 
         return "";
     }
 
-    function add_line( label, value, depth ) {
+    function add_line( label, any, depth ) {
         const line = document.createElement( "div" );
         line.className = "node";
         line.style.paddingLeft = ( 9 + depth * 11 ) + "px";
@@ -181,10 +231,10 @@
             line.appendChild( shown );
         }
 
-        if( value ) {
+        if( any ) {
             const shown = document.createElement( "span" );
             shown.className = "node_value";
-            shown.textContent = value;
+            shown.textContent = any;
             line.appendChild( shown );
         }
 
@@ -192,52 +242,77 @@
         return line;
     }
 
+    function save_buffer( buffer, filename, variant ) {
+        const url = URL.createObjectURL( new Blob( [ buffer ], { type: variant } ) );
+
+        const link = document.createElement( "a" );
+        link.href = url;
+        link.download = filename;
+        link.click();
+
+        setTimeout( function () { URL.revokeObjectURL( url ); }, 10000 );
+    }
+
+    function add_save( line, label, make ) {
+        const button = document.createElement( "button" );
+        button.type = "button";
+        button.className = "text_button save_button";
+        button.textContent = label;
+
+        button.addEventListener( "click", function ( event ) {
+            event.stopPropagation();
+            make();
+        } );
+
+        line.appendChild( button );
+    }
+
     function flat( list ) {
-        return list.every( function ( entry ) {
-            return entry === null || typeof entry !== "object";
+        return list.every( function ( any ) {
+            return any === null || typeof any !== "object";
         } );
     }
 
-    function walk( label, value, depth ) {
+    function walk( label, any, depth ) {
         if( depth > depth_limit ) return;
 
-        if( is_property( value ) ) {
-            add_line( label, describe_property( value ), depth );
+        if( is_property( any ) ) {
+            add_line( label, describe_property( any ), depth );
             return;
         }
 
-        if( Array.isArray( value ) ) {
-            if( !value.length ) {
+        if( Array.isArray( any ) ) {
+            if( !any.length ) {
                 add_line( label, "empty", depth );
                 return;
             }
-            if( flat( value ) ) {
-                add_line( label, show_value( value ), depth );
+            if( flat( any ) ) {
+                add_line( label, show_value( any ), depth );
                 return;
             }
 
-            add_line( label, value.length + " items", depth );
-            value.forEach( function ( entry, index ) {
-                walk( name_of( entry ) || String( index ), entry, depth + 1 );
+            add_line( label, any.length + " items", depth );
+            any.forEach( function ( entry, it ) {
+                walk( name_of( entry ) || String( it ), entry, depth + 1 );
             } );
             return;
         }
 
-        if( value && typeof value === "object" ) {
+        if( any && typeof any === "object" ) {
             add_line( label, "", depth );
-            Object.keys( value ).forEach( function ( key ) {
-                walk( key, value[ key ], depth + 1 );
+            Object.keys( any ).forEach( function ( key ) {
+                walk( key, any[ key ], depth + 1 );
             } );
             return;
         }
 
-        add_line( label, show_value( value ), depth );
+        add_line( label, show_value( any ), depth );
     }
 
     function walk_contents( parsed, depth ) {
         if( Array.isArray( parsed ) ) {
-            parsed.forEach( function ( entry, index ) {
-                walk( name_of( entry ) || String( index ), entry, depth );
+            parsed.forEach( function ( entry, it ) {
+                walk( name_of( entry ) || String( it ), entry, depth );
             } );
             return;
         }
@@ -252,68 +327,87 @@
         add_line( "", String( parsed ).slice( 0, 400 ), depth );
     }
 
-    function show( file, entries ) {
-        decoded = { file: file.name, bytes: file.size, entries: [] };
+    function show_part( part, stem ) {
+        const line = add_line( part.name, buffer_text( part.buffer.length ), 0 );
+        line.classList.add( "entry" );
 
-        if( !entries.length ) {
+        const says = part_says( part.name );
+        const suffix = suffix_of( part.buffer );
+
+        add_save( line, "save", function () {
+            save_buffer( part.buffer, stem + "." + part.name + "." + suffix,
+                suffix === "json"? "application/json": "application/octet-stream" );
+        } );
+
+        if( says ) add_line( "", says, 1 );
+
+        const parsed = parse_json( part.buffer );
+        if( parsed === undefined ) {
+            add_line( "", suffix + ", not settings", 1 );
+            return null;
+        }
+
+        walk_contents( parsed, 1 );
+        return parsed;
+    }
+
+    function show( file, parts ) {
+        if( !parts.length ) {
             summary.textContent = "nothing readable inside " + file.name;
             return;
         }
 
+        const stem = file.name.replace( /\.[^.]*$/, "" );
         let version = "";
-        const meta = entries.find( function ( entry ) { return entry.name === "meta"; } );
-        if( meta ) {
-            const parsed = parse_json( meta.data );
+
+        const meta = parts.filter( function ( part ) { return part.name === "meta"; } );
+        if( meta.length ) {
+            const parsed = parse_json( meta[ 0 ].buffer );
             if( parsed && parsed.version !== undefined ) version = ", saved by " + parsed.version;
         }
 
-        summary.textContent = file.name + ", " + bytes_text( file.size ) + ", "
-            + entries.length + ( entries.length === 1 ? " part" : " parts" ) + version;
+        summary.textContent = file.name + ", " + buffer_text( file.size ) + ", "
+            + parts.length + ( parts.length === 1? " part": " parts" ) + version;
 
-        entries.forEach( function ( entry ) {
-            const line = add_line( entry.name, bytes_text( entry.data.length ), 0 );
-            line.classList.add( "entry" );
+        const decoded = { file: file.name, buffer: file.size, parts: [] };
 
-            const parsed = parse_json( entry.data );
-            if( parsed === undefined ) {
-                decoded.entries.push( { name: entry.name, bytes: entry.data.length } );
-                add_line( "", "binary, not settings", 1 );
-                return;
-            }
-
-            decoded.entries.push( {
-                name: entry.name, bytes: entry.data.length, contents: parsed
+        parts.forEach( function ( part ) {
+            const contents = show_part( part, stem );
+            decoded.parts.push( {
+                name: part.name, buffer: part.buffer.length, contents
             } );
-            walk_contents( parsed, 1 );
         } );
 
-        save.hidden = false;
+        const line = add_line( "", "", 0 );
+        line.classList.add( "entry" );
+        add_save( line, "save every setting as json", function () {
+            save_buffer( JSON.stringify( decoded, null, 4 ),
+                stem + ".decoded.json", "application/json" );
+        } );
     }
 
     async function load( file ) {
         tree.textContent = "";
-        save.hidden = true;
-        decoded = null;
         summary.textContent = "reading " + file.name;
 
-        let bytes;
+        let buffer;
         try {
-            bytes = new Uint8Array( await file.arrayBuffer() );
+            buffer = new Uint8Array( await file.arrayBuffer() );
         } catch( error ) {
             summary.textContent = "could not read that file";
             return;
         }
 
-        let entries;
+        let parts;
         try {
-            entries = await open_file( bytes, file.name );
+            parts = await open_file( buffer, file.name );
         } catch( error ) {
             summary.textContent = file.name + " is not something clipmaker wrote";
             return;
         }
 
         try {
-            show( file, entries );
+            show( file, parts );
         } catch( error ) {
             summary.textContent = "could not make sense of " + file.name;
         }
@@ -324,15 +418,15 @@
         event.stopPropagation();
     }
 
-    [ "dragenter", "dragover" ].forEach( function ( kind ) {
-        zone.addEventListener( kind, function ( event ) {
+    [ "dragenter", "dragover" ].forEach( function ( variant ) {
+        zone.addEventListener( variant, function ( event ) {
             stop( event );
             zone.classList.add( "drop_on" );
         } );
     } );
 
-    [ "dragleave", "dragend" ].forEach( function ( kind ) {
-        zone.addEventListener( kind, function ( event ) {
+    [ "dragleave", "dragend" ].forEach( function ( variant ) {
+        zone.addEventListener( variant, function ( event ) {
             stop( event );
             zone.classList.remove( "drop_on" );
         } );
@@ -354,21 +448,7 @@
         if( picker.files && picker.files.length ) load( picker.files[ 0 ] );
     } );
 
-    [ "dragover", "drop" ].forEach( function ( kind ) {
-        document.addEventListener( kind, function ( event ) { event.preventDefault(); } );
-    } );
-
-    save.addEventListener( "click", function () {
-        if( !decoded ) return;
-
-        const text = JSON.stringify( decoded, null, 4 );
-        const url = URL.createObjectURL( new Blob( [ text ], { type: "application/json" } ) );
-
-        const link = document.createElement( "a" );
-        link.href = url;
-        link.download = decoded.file.replace( /\.[^.]*$/, "" ) + ".decoded.json";
-        link.click();
-
-        setTimeout( function () { URL.revokeObjectURL( url ); }, 10000 );
+    [ "dragover", "drop" ].forEach( function ( variant ) {
+        document.addEventListener( variant, function ( event ) { event.preventDefault(); } );
     } );
 } )();

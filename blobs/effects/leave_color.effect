@@ -1,0 +1,13 @@
+uniform float force;
+uniform vec3 tint;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+
+    float apart = distance( texel.xyz, tint );
+    vec3 grey = vec3( dot( texel.xyz, c_luma ) );
+
+    vec4 made = vec4( mix( texel.xyz, grey, smoothstep( 0.65, 0.5, apart ) ), texel.w );
+
+    gl_FragColor = mix( texel, made, clamp( force, 0.0, 1.0 ) );
+}

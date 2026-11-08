@@ -1,0 +1,34 @@
+uniform float force;
+uniform vec3 tint;
+uniform float angle;
+uniform float back;
+uniform float front;
+uniform float stochastic;
+
+void main() {
+    vec4 color = sample_it( vUv );
+
+    float turn = radians( angle );
+    vec2 along = vec2( cos( turn ), -sin( turn ) ) * round_offset();
+
+    float start = -remap( back, 0.0, 1.0 ) * 0.1;
+    float finish = remap( front, 0.0, 1.0 ) * 0.1;
+
+    float count_inverse = 1.0 / float( fetches );
+
+    vec4 body = vec4( 0.0 );
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        vec2 at = vUv - along * mix( start, finish, ( float( it ) + scatter( stochastic ) ) * count_inverse );
+
+        if( any( lessThan( at, vec2( 0.0 ) ) ) ) continue;
+        if( any( greaterThan( at, vec2( 1.0 ) ) ) ) continue;
+
+        vec4 texel = sample_it( at );
+        body = mix( body, texel, texel.w );
+    }
+
+    body.xyz *= tint;
+
+    gl_FragColor = mix( color, body, clamp( force, 0.0, 1.0 ) );
+}

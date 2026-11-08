@@ -1,0 +1,36 @@
+uniform float force;
+uniform vec3 tint;
+uniform float width;
+uniform float feather;
+uniform float stochastic;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+
+    vec2 round_uv = round_offset();
+    vec2 spread = remap( width, 0.0, 8.0 ) * 0.01 * round_uv;
+
+    float count_inverse = 1.0 / float( fetches );
+
+    float nearest = 1.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        float along = sqrt( ( float( it ) + 0.5 + scatter( stochastic ) ) * count_inverse );
+        float spin = float( it ) * c_golden_angle;
+        vec2 offset = vec2( cos( spin ), sin( spin ) ) * along * spread;
+
+        if( sample_it( vUv + offset ).w > 0.5 ) {
+            nearest = min( nearest, along );
+        }
+    }
+
+    float soft = max( clamp( feather, 0.0, 1.0 ), c_epsilon );
+    float ink = ( 1.0 - smoothstep( 1.0 - soft, 1.0, nearest + scatter( soft ) ) )
+        * ( 1.0 - texel.w ) * clamp( force, 0.0, 1.0 );
+
+    float alpha = texel.w + ink;
+
+    gl_FragColor = ( alpha > 0.0 )
+        ? vec4( ( texel.xyz * texel.w + tint * ink ) / alpha, alpha )
+        : texel;
+}

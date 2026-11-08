@@ -1,0 +1,35 @@
+uniform float force;
+uniform float segments;
+uniform float rotation;
+uniform float twist;
+uniform vec2 offset;
+uniform vec2 scale;
+
+const float c_pi_double = 6.283185;
+
+void main() {
+    float aspect = aspect_ratio();
+
+    vec2 centered = vUv - 0.5;
+    centered.x *= aspect;
+
+    float radius = length( centered );
+    float angle = atan( centered.y, centered.x ) + remap( twist, -1.0, 1.0 ) * radius * c_pi_double;
+
+    float wedge = c_pi_double / max( segments, 1.0 );
+    float folded = abs( mod( angle, wedge ) - wedge * 0.5 );
+
+    vec2 spot = vec2( cos( folded ), sin( folded ) ) * radius;
+
+    float turn = rotation * c_pi_double;
+    float cosine = cos( turn );
+    float sine = sin( turn );
+
+    spot = mat2( cosine, -sine, sine, cosine ) * spot;
+    spot.x /= aspect;
+    spot = spot / max( remap( scale, 0.1, 5.0 ), vec2( c_epsilon ) ) + remap( offset, -1.0, 1.0 ) + 0.5;
+
+    vec4 made = sample_it( 1.0 - abs( mod( spot, 2.0 ) - 1.0 ) );
+
+    gl_FragColor = mix( sample_it( vUv ), made, clamp( force, 0.0, 1.0 ) );
+}

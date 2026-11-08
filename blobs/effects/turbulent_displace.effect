@@ -1,0 +1,37 @@
+uniform float force;
+uniform float size;
+uniform vec2 offset;
+uniform float complexity;
+uniform float evolution;
+uniform float smoother;
+
+float fractal( vec2 spot ) {
+    float total = 0.0;
+    float weight = 0.5;
+    float reach = 1.0;
+    float weight_total = 0.0;
+
+for( int it = 0; it < c_complexity_max; ++it ) {
+        if( float( it ) >= complexity ) break;
+
+float one = wave( spot * reach ) * 2.0 - 1.0;
+        total += mix( abs( one ), one, clamp( smoother, 0.0, 1.0 ) ) * weight;
+
+weight_total += weight;
+        reach *= 2.0;
+        weight *= 0.5;
+    }
+
+return total / max( weight_total, c_epsilon );
+}
+
+void main() {
+    vec2 round_uv = round_coordinate();
+
+    vec2 spot = vUv * round_uv * ( 100.0 / max( remap( size, 2.0, 400.0 ), 1.0 ) ) + remap( offset, -10.0, 10.0 ) + evolution;
+
+    vec2 push = vec2( fractal( spot ), fractal( spot + vec2( 37.4, 11.7 ) ) );
+    vec2 at = vUv + push * remap( force, 0.0, 400.0 ) * 0.002 / round_uv;
+
+    gl_FragColor = sample_it( 1.0 - abs( mod( at, 2.0 ) - 1.0 ) );
+}

@@ -1,0 +1,33 @@
+uniform float force;
+uniform vec3 tint;
+uniform float shift;
+uniform float feather;
+uniform float stochastic;
+
+void main() {
+    vec4 color = sample_it( vUv );
+
+    float aspect = aspect_ratio();
+    vec2 round_uv = vec2( 1.0 / aspect, 1.0 );
+    vec2 spread = remap( feather, 0.0, 0.25 ) * round_uv;
+
+    float count_inverse = 1.0 / float( fetches );
+
+    vec2 away = vec2( remap( shift, 0.0, 0.25 ), remap( shift, 0.0, 0.25 ) ) * round_uv;
+    float ahead = 0.0;
+    float behind = 0.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        vec2 step_uv = vogel_scatter( it, count_inverse, stochastic ) * spread;
+
+        ahead += sample_it( vUv + away + step_uv ).w;
+        behind += sample_it( vUv - away + step_uv ).w;
+    }
+
+    ahead *= count_inverse;
+    behind *= count_inverse;
+
+    float sheen = clamp( abs( ahead - behind ) * remap( force, 0.0, 3.0 ), 0.0, 1.0 ) * color.w;
+
+    gl_FragColor = vec4( mix( color.xyz, tint, sheen ), color.w );
+}

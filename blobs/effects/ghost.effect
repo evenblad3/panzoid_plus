@@ -1,0 +1,39 @@
+uniform float force;
+uniform vec3 tint;
+uniform vec2 position;
+uniform float shrink;
+uniform float feather;
+uniform float stochastic;
+
+void main() {
+    vec4 color = sample_it( vUv );
+
+    vec2 round_uv = round_offset();
+    vec2 spread = remap( feather, 0.0, 0.25 ) * round_uv;
+
+    vec2 pulled = remap( position, -1.0, 2.0 ) + ( vUv - remap( position, -1.0, 2.0 ) ) * max( 1.0 - remap( shrink, -1.0, 0.9 ), c_epsilon );
+
+    float count_inverse = 1.0 / float( fetches );
+
+    vec4 copy = vec4( 0.0 );
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        float along = sqrt( ( float( it ) + 0.5 + scatter( stochastic ) ) * count_inverse );
+        float spin = float( it ) * c_golden_angle;
+        vec2 at = pulled + vec2( cos( spin ), sin( spin ) ) * along * spread;
+
+        copy += ( at.x < 0.0 || at.x > 1.0 || at.y < 0.0 || at.y > 1.0 )
+            ? vec4( 0.0 )
+            : sample_it( at );
+    }
+
+    copy *= count_inverse;
+
+    float shade = copy.w * clamp( force, 0.0, 1.0 );
+    float alpha = shade + color.w * ( 1.0 - shade );
+
+    gl_FragColor = ( alpha > 0.0 )
+        ? vec4( ( copy.xyz * tint * shade + color.xyz * color.w * ( 1.0 - shade ) ) / alpha,
+            alpha )
+        : color;
+}

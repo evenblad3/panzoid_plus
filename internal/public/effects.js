@@ -1,1 +1,0 @@
-window.pz_effects = [];
