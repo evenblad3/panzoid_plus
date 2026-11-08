@@ -1,8 +1,8 @@
-uniform vec3 tint;
 uniform float force;
+uniform vec3 tint;
 
 void main() {
     vec4 texel = sample_it( vUv );
 
-    gl_FragColor = vec4( mix( texel.xyz, texel.xyz * tint, force ), texel.w );
+    gl_FragColor = vec4( mix( texel.xyz, texel.xyz * tint, clamp( force, 0.0, 1.0 ) ), texel.w );
 }

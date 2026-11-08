@@ -1,24 +1,22 @@
-uniform vec2 anchor;
-uniform vec2 size;
-uniform float feather;
 uniform float force;
 uniform vec3 tint;
+uniform vec2 position;
+uniform vec2 size;
+uniform float feather;
 
 void main() {
-    vec4 color = sample_it( vUv );
+    vec4 texel = sample_it( vUv );
 
-    float aspect = aspect_ratio();
+    vec2 round_uv = round_coordinate();
+    vec2 cells = ( vUv - remap( position, -1.0, 2.0 ) ) * round_uv
+        / max( remap( size, 0.002, 0.5 ), vec2( c_epsilon ) );
 
-    vec2 square_uv = vec2( vUv.x * aspect, vUv.y );
-    vec2 square_anchor = vec2( remap( anchor, -1.0, 2.0 ).x * aspect, remap( anchor, -1.0, 2.0 ).y );
-
-    vec2 cells = ( square_uv - square_anchor ) / max( remap( size, 0.002, 0.5 ), vec2( c_epsilon ) );
     vec2 wave = abs( fract( cells * 0.5 ) - 0.5 ) * 2.0 - 0.5;
 
     float edge = max( feather, c_epsilon ) * 0.5;
     vec2 soft = smoothstep( -edge, edge, wave );
-    float square = soft.x + soft.y - 2.0 * soft.x * soft.y;
 
-    gl_FragColor = vec4( mix( color.xyz, tint, square * force ),
-        max( color.w, square * force ) );
+    float square = ( soft.x + soft.y - 2.0 * soft.x * soft.y ) * clamp( force, 0.0, 1.0 );
+
+    gl_FragColor = vec4( mix( texel.xyz, tint, square ), max( texel.w, square ) );
 }

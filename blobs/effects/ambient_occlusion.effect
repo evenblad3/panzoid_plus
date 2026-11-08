@@ -15,5 +15,8 @@ void main() {
         around += luma_it( vUv + vogel_scatter( it, count_inverse, stochastic ) * reach );
     }
 
-    gl_FragColor = vec4( mix( texel.xyz, tint, around * count_inverse * remap( force, 0.0, 2.0 ) ), texel.w );
+    float shade = clamp( ( around * count_inverse - luma( texel.xyz ) )
+        * remap( force, 0.0, 8.0 ), 0.0, 1.0 );
+
+    gl_FragColor = vec4( mix( texel.xyz, tint, shade ), texel.w );
 }

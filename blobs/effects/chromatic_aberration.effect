@@ -1,17 +1,22 @@
 uniform float force;
+uniform float angle;
 uniform float red;
 uniform float green;
 uniform float blue;
 uniform float stochastic;
 
-const float c_shift_scale = 0.025000;
-
 void main() {
-    vec2 centered = vUv - vec2( 0.5 );
-    float reach = remap( force, 0.0, 8.0 ) * length( centered );
+    vec2 centered = vUv - 0.5;
 
-    float count = max( float( fetches ), 2.0 );
-    float span_inverse = 1.0 / ( count - 1.0 );
+    float turn = radians( angle );
+    float cosine = cos( turn );
+    float sine = sin( turn );
+
+    vec2 way = vec2( centered.x * cosine - centered.y * sine,
+        centered.x * sine + centered.y * cosine ) * remap( force, 0.0, 8.0 ) * 0.025;
+
+    vec3 shift = remap( vec3( red, green, blue ), -1.0, 1.0 );
+    float span_inverse = 1.0 / max( float( fetches ) - 1.0, 1.0 );
 
     vec3 total = vec3( 0.0 );
     vec3 weight_total = vec3( 0.0 );
@@ -20,22 +25,20 @@ void main() {
     for( int it = 0; it < int( fetches ); ++it ) {
         float along = ( float( it ) + scatter( stochastic ) ) * span_inverse;
 
-        float channel = ( along < 0.5 )
-            ? mix( remap( red, -1.0, 1.0 ), remap( green, -1.0, 1.0 ), along * 2.0 )
-            : mix( remap( green, -1.0, 1.0 ), remap( blue, -1.0, 1.0 ), along * 2.0 - 1.0 );
+        float channel = ( along < 0.5 )? mix( shift.x, shift.y, along * 2.0 )
+            : mix( shift.y, shift.z, along * 2.0 - 1.0 );
 
-        vec4 texel = sample_it( vUv + centered * channel * c_shift_scale * reach );
+        vec4 texel = sample_it( vUv + way * channel );
 
-        vec3 weight = vec3(
-            smoothstep( 0.5, 0.0, along ),
+        vec3 weight = vec3( smoothstep( 0.5, 0.0, along ),
             1.0 - abs( along * 2.0 - 1.0 ),
-            smoothstep( 0.5, 1.0, along )
-        );
+            smoothstep( 0.5, 1.0, along ) );
 
         total += texel.xyz * weight;
         weight_total += weight;
         alpha += texel.w;
     }
 
-    gl_FragColor = vec4( total / max( weight_total, vec3( c_epsilon ) ), alpha / count );
+    gl_FragColor = vec4( total / max( weight_total, vec3( c_epsilon ) ),
+        alpha / float( fetches ) );
 }

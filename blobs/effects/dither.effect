@@ -1,13 +1,19 @@
 uniform float force;
+uniform vec3 tint;
 uniform float posterize;
+uniform float scale;
+uniform float saturation;
 
 void main() {
     vec4 texel = sample_it( vUv );
 
     float levels = exp2( mix( 8.0, 1.0, posterize ) ) - 1.0;
-    float threshold = mix( 0.5, bayer_eight( vUv * buffer_size() ), force );
+    float threshold = mix( 0.5,
+        dither_noise( vUv * buffer_size() / remap( scale, 1.0, 8.0 ) ), force );
 
-    vec3 made = floor( texel.xyz * levels + threshold ) / levels;
+    vec3 shade = mix( vec3( luma( texel.xyz ) ), texel.xyz, remap( saturation, 0.0, 2.0 ) );
+    vec3 made = clamp( floor( clamp( shade, 0.0, 1.0 ) * levels + threshold ) / levels,
+        0.0, 1.0 );
 
-    gl_FragColor = vec4( clamp( made, 0.0, 1.0 ), texel.w );
+    gl_FragColor = vec4( made * tint, texel.w );
 }

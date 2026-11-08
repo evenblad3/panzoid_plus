@@ -2,9 +2,9 @@ const float c_epsilon = 0.000001;
 const float c_golden_angle = 2.399963;
 const float c_turn = 6.283185;
 
-const vec3 c_luma = vec3( 0.212600, 0.715200, 0.072200 );
+const vec3 c_luma = vec3( 0.2126, 0.7152, 0.0722 );
 
-#define sample_it( it ) texture2D( tDiffuse, ( it ) * uvScale )
+#define sample_it( it ) texture2D( tDiffuse, clamp( it, 0.0, 1.0 ) * uvScale )
 #define luma_it( it ) dot( sample_it( it ).xyz, c_luma )
 
 #define remap( any, near, far ) ( ( near ) + ( ( far ) - ( near ) ) * ( any ) )
@@ -47,9 +47,19 @@ float dither_noise( vec2 it ) {
         + fract( one.x * 0.5 + one.y * one.y * 0.75 );
 }
 
+vec2 hash_pair( vec2 at ) {
+    vec3 drift = fract( at.xyx * vec3( 0.1031, 0.103, 0.0973 ) );
+    drift += dot( drift, drift.yzx + 33.33 );
+
+    return fract( ( drift.xx + drift.yz ) * drift.zy );
+}
+
+vec2 stochastic_pair() {
+    return hash_pair( vUv * buffer_size() );
+}
+
 float stochastic_noise() {
-    vec2 at = vUv * buffer_size();
-    return fract( 52.982918 * fract( dot( at, vec2( 0.067111, 0.005837 ) ) ) );
+    return stochastic_pair().x;
 }
 
 float scatter( float width ) {
@@ -57,18 +67,18 @@ float scatter( float width ) {
 }
 
 vec2 vogel_offset( int it, float count_inverse ) {
-    float along = sqrt( ( float( it ) + 0.500000 ) * count_inverse );
+    float along = sqrt( ( float( it ) + 0.5 ) * count_inverse );
     float spin = float( it ) * c_golden_angle;
 
     return vec2( cos( spin ), sin( spin ) ) * along;
 }
 
 vec2 vogel_scatter( int it, float count_inverse, float stochastic ) {
-    float jitter = stochastic_noise();
+    vec2 jitter = stochastic_pair();
 
-    float along = sqrt( ( float( it ) + 0.500000
-        + ( jitter - 0.500000 ) * stochastic ) * count_inverse );
-    float spin = float( it ) * c_golden_angle + jitter * stochastic * c_turn;
+    float along = sqrt( ( float( it ) + 0.5
+        + ( jitter.x - 0.5 ) * stochastic ) * count_inverse );
+    float spin = float( it ) * c_golden_angle + jitter.y * stochastic * c_turn;
 
     return vec2( cos( spin ), sin( spin ) ) * along;
 }

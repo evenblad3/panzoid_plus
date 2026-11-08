@@ -1,0 +1,114 @@
+uniform float force;
+uniform float threshold;
+uniform float sharpness;
+
+const float c_contrast_floor = 0.0312;
+const float c_stride_cap = 8.0;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+    vec2 step_uv = texel_size();
+
+    float middle = luma_it( vUv );
+    float north = luma_it( vUv + vec2( 0.0, step_uv.y ) );
+    float south = luma_it( vUv - vec2( 0.0, step_uv.y ) );
+    float east = luma_it( vUv + vec2( step_uv.x, 0.0 ) );
+    float west = luma_it( vUv - vec2( step_uv.x, 0.0 ) );
+
+    float highest = max( middle, max( max( north, south ), max( east, west ) ) );
+    float lowest = min( middle, min( min( north, south ), min( east, west ) ) );
+    float range = highest - lowest;
+
+    if( range < max( c_contrast_floor, highest * remap( threshold, 0.03, 0.25 ) ) ) {
+        gl_FragColor = texel;
+        return;
+    }
+
+    float north_west = luma_it( vUv + vec2( -step_uv.x, step_uv.y ) );
+    float north_east = luma_it( vUv + step_uv );
+    float south_west = luma_it( vUv - step_uv );
+    float south_east = luma_it( vUv + vec2( step_uv.x, -step_uv.y ) );
+
+    float up_down = north + south;
+    float left_right = east + west;
+
+    float lean_across = abs( north_west + south_west - 2.0 * west )
+        + abs( up_down - 2.0 * middle ) * 2.0
+        + abs( north_east + south_east - 2.0 * east );
+    float lean_along = abs( north_west + north_east - 2.0 * north )
+        + abs( left_right - 2.0 * middle ) * 2.0
+        + abs( south_west + south_east - 2.0 * south );
+
+    bool across = lean_across >= lean_along;
+
+    float behind = across? south: west;
+    float ahead = across? north: east;
+
+    float slope_behind = abs( behind - middle );
+    float slope_ahead = abs( ahead - middle );
+
+    bool steeper = slope_behind >= slope_ahead;
+    float slope = 0.25 * max( slope_behind, slope_ahead );
+
+    float thickness = across? step_uv.y: step_uv.x;
+    float toward = steeper? -thickness: thickness;
+    float edge_luma = ( middle + ( steeper? behind: ahead ) ) * 0.5;
+
+    vec2 middle_at = vUv + ( across? vec2( 0.0, toward * 0.5 ): vec2( toward * 0.5, 0.0 ) );
+    vec2 walk = across? vec2( step_uv.x, 0.0 ): vec2( 0.0, step_uv.y );
+
+    vec2 back = middle_at - walk;
+    vec2 forth = middle_at + walk;
+
+    float back_apart = luma_it( back ) - edge_luma;
+    float forth_apart = luma_it( forth ) - edge_luma;
+
+    bool back_done = abs( back_apart ) >= slope;
+    bool forth_done = abs( forth_apart ) >= slope;
+
+    float back_reach = 1.0;
+    float forth_reach = 1.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        if( back_done && forth_done ) break;
+
+        float stride = min( exp2( max( 0.0, float( it ) - 4.0 ) ), c_stride_cap );
+
+        if( !back_done ) {
+            back -= walk * stride;
+            back_reach += stride;
+
+            back_apart = luma_it( back ) - edge_luma;
+            back_done = abs( back_apart ) >= slope;
+        }
+
+        if( !forth_done ) {
+            forth += walk * stride;
+            forth_reach += stride;
+
+            forth_apart = luma_it( forth ) - edge_luma;
+            forth_done = abs( forth_apart ) >= slope;
+        }
+    }
+
+    bool nearer_back = back_reach < forth_reach;
+    float total_reach = max( back_reach + forth_reach, c_epsilon );
+
+    bool same_side = ( ( nearer_back? back_apart: forth_apart ) < 0.0 )
+        == ( ( middle - edge_luma ) < 0.0 );
+
+    float push = same_side? 0.0
+        : ( 0.5 - min( back_reach, forth_reach ) / total_reach ) * toward;
+
+    float around = ( 2.0 * ( up_down + left_right )
+        + north_west + north_east + south_west + south_east ) / 12.0;
+
+    float fine = clamp( abs( around - middle ) / max( range, c_epsilon ), 0.0, 1.0 );
+    fine = ( 3.0 - 2.0 * fine ) * fine * fine;
+    fine = fine * fine * clamp( sharpness, 0.0, 1.0 ) * toward;
+
+    float moved = ( abs( fine ) > abs( push ) )? fine: push;
+    vec2 at = vUv + ( across? vec2( 0.0, moved ): vec2( moved, 0.0 ) );
+
+    gl_FragColor = mix( texel, sample_it( at ), clamp( force, 0.0, 1.0 ) );
+}

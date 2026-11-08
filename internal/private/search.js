@@ -6,14 +6,14 @@ extension.ready.push( function () {
     const empty = document.getElementById( "no_matches" );
     const count = document.getElementById( "match_count" );
 
-    function shown_in( box ) {
+    function visible_in( box ) {
         const buttons = box.querySelectorAll( ".effect_button" );
 
         for( let it = 0; it < buttons.length; ++it ) {
-            if( buttons[ it ].style.display !== "none" ) return true;
+            if( buttons[ it ].style.display !== "none" ) return buttons[ it ];
         }
 
-        return false;
+        return null;
     }
 
     function filter() {
@@ -22,34 +22,25 @@ extension.ready.push( function () {
 
         document.querySelectorAll( ".effect_button" ).forEach( function ( button ) {
             const name = button.firstChild.textContent.toLowerCase();
-            const description = button.lastElementChild ? button.lastElementChild.textContent : "";
-            const hit = !term || ( name + " " + description.toLowerCase() ).indexOf( term ) !== -1;
+            const description = button.lastElementChild?
+                button.lastElementChild.textContent.toLowerCase(): "";
 
-            button.style.display = hit ? "" : "none";
+            const hit = !term || ( name + " " + description ).indexOf( term ) !== -1;
+
+            button.style.display = hit? "": "none";
             if( hit ) ++found;
         } );
 
         document.querySelectorAll( ".group_name" ).forEach( function ( title ) {
             const box = title.nextElementSibling;
-            const any = shown_in( box );
+            const any = visible_in( box )? "": "none";
 
-( a )? b: c
-            box.style.display = any ? "" : "none";
-            title.style.display = any ? "" : "none";
+            box.style.display = any;
+            title.style.display = any;
         } );
 
         empty.hidden = found > 0;
-        count.textContent = term ? String( found ) : "";
-    }
-
-    function first_shown() {
-        const buttons = document.querySelectorAll( ".effect_button" );
-
-        for( let it = 0; it < buttons.length; ++it ) {
-            if( buttons[ it ].style.display !== "none" ) return buttons[ it ];
-        }
-
-        return null;
+        count.textContent = term? String( found ): "";
     }
 
     field.addEventListener( "input", filter );
@@ -63,7 +54,7 @@ extension.ready.push( function () {
 
         if( event.key !== "Enter" ) return;
 
-        const button = first_shown();
+        const button = visible_in( document );
         if( button ) button.click();
     } );
 

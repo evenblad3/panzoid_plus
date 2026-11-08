@@ -1,33 +1,23 @@
 uniform float force;
-uniform float width;
+uniform float thickness;
 uniform float angle;
 uniform float margin;
 uniform float feather;
 
-const float c_pi = 3.141592;
-
 void main() {
     vec4 texel = sample_it( vUv );
 
-    float aspect = aspect_ratio();
+    float turn = radians( angle );
+    float slat = max( remap( thickness, 0.002, 1.0 ), c_epsilon );
 
-    float turn = angle * c_pi;
-    float cosine = cos( turn );
-    float sine = sin( turn );
+    float across = mod( dot( ( vUv - 0.5 ) * round_coordinate(),
+        vec2( cos( turn ), -sin( turn ) ) ), slat );
 
-    vec2 centered = ( vUv - vec2( 0.5 ) ) * vec2( aspect, 1.0 );
-    vec2 rotated = vec2( centered.x * cosine - centered.y * sine,
-        centered.x * sine + centered.y * cosine );
-
-    float slat = max( remap( width, 0.002, 1.0 ), c_epsilon );
-    float across = mod( rotated.x + rotated.y, slat );
     float edge = remap( margin, 0.0, 0.9 ) * slat * 0.5;
     float soft = max( feather, c_epsilon ) * slat * 0.5;
 
     float opening = smoothstep( edge - soft, edge + soft, across )
         * smoothstep( slat - edge + soft, slat - edge - soft, across );
 
-    vec4 made = texel * opening;
-
-    gl_FragColor = mix( texel, made, clamp( force, 0.0, 1.0 ) );
+    gl_FragColor = mix( texel, texel * opening, clamp( force, 0.0, 1.0 ) );
 }

@@ -3,9 +3,7 @@ uniform float twist;
 uniform float time;
 
 void main() {
-    vec2 wave = vec2( sin( vUv.y * remap( twist, 0.25, 3.0 ) + time ), sin( vUv.x * remap( twist, 0.25, 3.0 ) + time ) );
+    vec2 wave = sin( vec2( vUv.y, vUv.x ) * remap( twist, 0.25, 3.0 ) + time );
 
-    vec2 at = vUv + wave * force * 0.2;
-
-    gl_FragColor = sample_it( 1.0 - abs( mod( at, 2.0 ) - 1.0 ) );
+    gl_FragColor = sample_it( 1.0 - abs( mod( vUv + wave * force * 0.2, 2.0 ) - 1.0 ) );
 }

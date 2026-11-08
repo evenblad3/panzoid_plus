@@ -1,37 +1,30 @@
 uniform float force;
 uniform float radius;
-uniform float alpha_too;
-
-const int c_fetches = 49;
-
-vec2 spot( int it ) {
-    float along = sqrt( ( float( it ) + 0.5 ) / float( c_fetches ) );
-    float angle = float( it ) * c_golden_angle;
-    return vec2( cos( angle ), sin( angle ) ) * along;
-}
+uniform float stochastic;
 
 void main() {
     vec4 keep = sample_it( vUv );
 
     vec2 reach = max( remap( radius, 1.0, 64.0 ), 1.0 ) * texel_size();
+    float count_inverse = 1.0 / float( fetches );
 
-    float brightness[ c_fetches ];
+    float brightness[ fetches ];
 
-    for( int it = 0; it < c_fetches; ++it ) {
-        brightness[ it ] = dot( sample_it( vUv + spot( it ) * reach ).xyz, c_luma );
+    for( int it = 0; it < int( fetches ); ++it ) {
+        brightness[ it ] = luma_it( vUv + vogel_scatter( it, count_inverse, stochastic ) * reach );
     }
 
     int middle = 0;
-    int closest = c_fetches;
+    int closest = int( fetches );
 
-    for( int it = 0; it < c_fetches; ++it ) {
+    for( int it = 0; it < int( fetches ); ++it ) {
         int below = 0;
 
-        for( int other = 0; other < c_fetches; ++other ) {
+        for( int other = 0; other < int( fetches ); ++other ) {
             if( brightness[ other ] < brightness[ it ] ) below += 1;
         }
 
-        int gap = below - c_fetches / 2;
+        int gap = below - int( fetches ) / 2;
         if( gap < 0 ) gap = -gap;
 
         if( gap < closest ) {
@@ -40,9 +33,7 @@ void main() {
         }
     }
 
-    vec4 picked = sample_it( vUv + spot( middle ) * reach );
+    vec4 picked = sample_it( vUv + vogel_scatter( middle, count_inverse, stochastic ) * reach );
 
-    vec4 made = vec4( picked.xyz, mix( keep.w, picked.w, clamp( alpha_too, 0.0, 1.0 ) ) );
-
-    gl_FragColor = mix( keep, made, clamp( force, 0.0, 1.0 ) );
+    gl_FragColor = mix( keep, vec4( picked.xyz, keep.w ), clamp( force, 0.0, 1.0 ) );
 }

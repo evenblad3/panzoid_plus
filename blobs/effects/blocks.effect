@@ -1,0 +1,18 @@
+uniform float force;
+uniform float scale;
+uniform float position;
+uniform float feather;
+
+void main() {
+    vec4 texel = sample_it( vUv );
+
+    float cell = max( remap( scale, 0.01, 0.5 ), 0.001 );
+    vec2 square = vec2( vUv.x * aspect_ratio(), vUv.y ) / cell;
+
+    float roll = hash_pair( floor( square ) ).x;
+
+    float soft = max( remap( feather, 0.0, 0.5 ), c_epsilon );
+    float open = smoothstep( position + soft, position - soft, roll );
+
+    gl_FragColor = mix( texel, texel * open, clamp( force, 0.0, 1.0 ) );
+}

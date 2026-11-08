@@ -4,8 +4,7 @@ uniform vec3 tint;
 void main() {
     vec4 texel = sample_it( vUv );
 
-    float apart = distance( texel.xyz, tint );
-    float reach = smoothstep( force, force - 0.5, apart );
+    float matched = smoothstep( force, force - 0.5, distance( texel.xyz, tint ) );
 
-    gl_FragColor = vec4( mix( texel.xyz, 1.0 - texel.xyz, reach ), texel.w );
+    gl_FragColor = vec4( mix( texel.xyz, 1.0 - texel.xyz, matched ), texel.w );
 }

@@ -1,6 +1,4 @@
 uniform float force;
-uniform vec3 tint_shadow;
-uniform vec3 tint_highlight;
 uniform float low;
 uniform float mid;
 uniform float high;
@@ -10,7 +8,7 @@ float hermite( float along, float from, float to, float slope_from, float slope_
     float square = along * along;
     float cube = square * along;
 
-return ( 2.0 * cube - 3.0 * square + 1.0 ) * from
+    return ( 2.0 * cube - 3.0 * square + 1.0 ) * from
         + ( cube - 2.0 * square + along ) * slope_from * 0.25
         + ( -2.0 * cube + 3.0 * square ) * to
         + ( cube - square ) * slope_to * 0.25;
@@ -22,26 +20,26 @@ float curve_at( float shade ) {
     float third = ( high - mid ) * 4.0;
     float fourth = ( 1.0 - high ) * 4.0;
 
-float along = fract( min( shade, 1.0 - c_epsilon ) * 4.0 );
+    float along = fract( min( shade, 1.0 - c_epsilon ) * 4.0 );
 
-if( shade < 0.25 ) return hermite( along, 0.0, low, first, ( first + second ) * 0.5 );
-    if( shade < 0.5 ) return hermite( along, low, mid, ( first + second ) * 0.5, ( second + third ) * 0.5 );
-    if( shade < 0.75 ) return hermite( along, mid, high, ( second + third ) * 0.5, ( third + fourth ) * 0.5 );
+    if( shade < 0.25 ) return hermite( along, 0.0, low, first, ( first + second ) * 0.5 );
+    if( shade < 0.5 ) {
+        return hermite( along, low, mid, ( first + second ) * 0.5, ( second + third ) * 0.5 );
+    }
+    if( shade < 0.75 ) {
+        return hermite( along, mid, high, ( second + third ) * 0.5, ( third + fourth ) * 0.5 );
+    }
 
-return hermite( along, high, 1.0, ( third + fourth ) * 0.5, fourth );
+    return hermite( along, high, 1.0, ( third + fourth ) * 0.5, fourth );
 }
 
 void main() {
     vec4 texel = sample_it( vUv );
 
-    vec3 graded = clamp( vec3(
-        curve_at( texel.x ),
-        curve_at( texel.y ),
-        curve_at( texel.z ) ), 0.0, 1.0 );
+    vec3 graded = clamp( vec3( curve_at( texel.x ), curve_at( texel.y ), curve_at( texel.z ) ),
+        0.0, 1.0 );
+    graded = clamp( mix( vec3( luma( graded ) ), graded, remap( saturation, 0.0, 2.0 ) ),
+        0.0, 1.0 );
 
-    graded *= mix( tint_shadow, tint_highlight, luma( graded ) );
-    graded = mix( vec3( luma( graded ) ), graded, remap( saturation, 0.0, 4.0 ) );
-
-    gl_FragColor = vec4(
-        mix( texel.xyz, clamp( graded, 0.0, 1.0 ), force ), texel.w );
+    gl_FragColor = vec4( mix( texel.xyz, graded, clamp( force, 0.0, 1.0 ) ), texel.w );
 }

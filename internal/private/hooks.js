@@ -24,6 +24,10 @@
     const flat_enough = 0.5;
     const epsilon = 1e-12;
 
+    const settle_ticks = 2400;
+    const settle_wait = 25;
+    const watch_wait = 2000;
+
     let settings = defaults;
     try {
         const raw = localStorage.getItem( "panzoid_plus.settings" );
@@ -42,6 +46,7 @@
         mounted: 0,
         preview: "",
         last_transfer: "",
+        hooks: {},
     };
 
     let max_texture_size = 0;
@@ -301,10 +306,16 @@
         return window.PZ || null;
     }
 
-    let light_patched = false;
-    let mounted = false;
-    let viewport_armed = false;
-    let precision_armed = false;
+    function reach( root, path ) {
+        let held = root;
+
+        for( const step of path.split( "." ) ) {
+            if( !held ) return null;
+            held = held[ step ];
+        }
+
+        return held || null;
+    }
 
     function fill( list ) {
         if( !Array.isArray( list ) || !settings.mount_effects ) return list;
@@ -335,19 +346,19 @@
     }
 
     function mount( PZ ) {
-        if( mounted ) return;
-
         const types = PZ.ui && PZ.ui.objectTypes;
         if( !types || typeof types.get !== "function" ) return;
 
         const read = types.get.bind( types );
-        types.get = function( key ) {
+
+        function patched( key ) {
             const list = read( key );
             return key === PZ.effect ? fill( list ) : list;
-        };
+        }
+        patched.__plus_wrapped = true;
 
+        types.get = patched;
         fill( PZ.effect && read( PZ.effect ) );
-        mounted = true;
     }
 
     const live_fields = new Set();
@@ -367,8 +378,6 @@
     }
 
     function arm_precision( PZ ) {
-        if( precision_armed ) return;
-
         const input = PZ.ui && PZ.ui.input;
         const prototype = input && input.prototype;
         if( !prototype || typeof prototype.update !== "function" ) return;
@@ -390,12 +399,14 @@
         }
 
         const original = prototype.update;
-        prototype.update = function( any, forced ) {
+
+        function patched( any, forced ) {
             live_fields.add( this );
             return original.call( this, any, forced );
-        };
+        }
+        patched.__plus_wrapped = true;
 
-        precision_armed = true;
+        prototype.update = patched;
     }
 
     function with_pixel_ratio( ratio, body ) {
@@ -447,15 +458,13 @@
     }
 
     function arm_viewport( PZ ) {
-        if( viewport_armed ) return;
-
         const viewport = PZ.ui && PZ.ui.viewport;
         const prototype = viewport && viewport.prototype;
         if( !prototype || typeof prototype.resize !== "function" ) return;
 
         const original = prototype.resize;
 
-        prototype.resize = function() {
+        function patched() {
             const view = this;
             const parameters = arguments;
 
@@ -479,20 +488,16 @@
             } catch( error ) {}
 
             return done;
-        };
+        }
+        patched.__plus_wrapped = true;
 
-        viewport_armed = true;
+        prototype.resize = patched;
     }
 
     function patch_light( PZ ) {
-        if( light_patched ) return;
-
         const holder = PZ.object3d;
         const original = holder && holder.light;
-        if( typeof original !== "function" || original.__plus_wrapped ) {
-            light_patched = Boolean( original && original.__plus_wrapped );
-            return;
-        }
+        if( typeof original !== "function" || original.__plus_wrapped ) return;
 
         function scale_shadow( light ) {
             const three = light && light.threeObj;
@@ -538,25 +543,40 @@
 
         try {
             holder.light = patched_light;
-            light_patched = true;
         } catch( error ) {}
     }
 
+    const hooks = [
+        { name: "better_shadows", path: "object3d.light", arm: patch_light },
+        { name: "sharp_preview", path: "ui.viewport.prototype.resize", arm: arm_viewport },
+        { name: "precise_values", path: "ui.input.prototype.update", arm: arm_precision },
+        { name: "mount_effects", path: "ui.objectTypes.get", arm: mount }
+    ];
+
     function watch_for_pz() {
-        let tries = 0;
+        let ticks = 0;
 
         const tick = () => {
             const PZ = global_pz();
-            if( PZ ) {
-                patch_light( PZ );
-                arm_viewport( PZ );
-                arm_precision( PZ );
-                mount( PZ );
+            let armed = 0;
+
+            for( const hook of hooks ) {
+                if( PZ ) {
+                    try {
+                        hook.arm( PZ );
+                    } catch( error ) {}
+                }
+
+                const held = reach( PZ, hook.path );
+                const on = Boolean( held && held.__plus_wrapped );
+
+                status.hooks[ hook.name ] = on? "armed": "waiting";
+                if( on ) armed++;
             }
 
-            const ready = light_patched && mounted && viewport_armed && precision_armed;
-            if( ready || ++tries > 2400 ) return;
-            setTimeout( tick, 25 );
+            ticks++;
+            setTimeout( tick, ( armed === hooks.length || ticks > settle_ticks )?
+                watch_wait: settle_wait );
         };
 
         tick();

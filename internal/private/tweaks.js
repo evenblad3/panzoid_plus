@@ -12,18 +12,19 @@
         sharp_preview: false
     };
 
-    const boxes = {};
+    const pickers = {};
 
     Object.keys( defaults ).forEach( function ( name ) {
-        const box = document.getElementById( "tweak_" + name );
-        if( box ) boxes[ name ] = box;
+        const picker = document.getElementById( "tweak_" + name );
+        if( picker ) pickers[ name ] = picker;
     } );
 
     function save() {
         const settings = {};
 
         Object.keys( defaults ).forEach( function ( name ) {
-            settings[ name ] = boxes[ name ]? boxes[ name ].checked: defaults[ name ];
+            settings[ name ] = pickers[ name ]?
+                pickers[ name ].value === "on": defaults[ name ];
         } );
 
         chrome.storage.local.set( { [ storage_key ]: settings } );
@@ -32,12 +33,11 @@
     chrome.storage.local.get( storage_key, function ( stored ) {
         const saved = stored[ storage_key ] || {};
 
-        Object.keys( boxes ).forEach( function ( name ) {
-            boxes[ name ].checked = typeof saved[ name ] === "boolean"
-                ? saved[ name ]
-                : defaults[ name ];
+        Object.keys( pickers ).forEach( function ( name ) {
+            const on = typeof saved[ name ] === "boolean"? saved[ name ]: defaults[ name ];
 
-            boxes[ name ].addEventListener( "change", save );
+            pickers[ name ].value = on? "on": "off";
+            pickers[ name ].addEventListener( "change", save );
         } );
     } );
 } )();

@@ -6,36 +6,25 @@ uniform float feather;
 uniform float grain;
 uniform float stochastic;
 
-const float c_noise_scale = 1024.000000;
-
 void main() {
-    vec4 color = sample_it( vUv );
+    vec4 texel = sample_it( vUv );
 
-    float aspect = aspect_ratio();
-    vec2 round_uv = vec2( 1.0 / aspect, 1.0 );
+    vec2 round_uv = round_offset();
     vec2 spread = remap( feather, 0.0, 0.25 ) * round_uv;
 
     float turn = radians( angle );
-    vec2 offset = vec2( cos( turn ), -sin( turn ) ) * remap( shift, 0.0, 0.25 ) * round_uv;
-    vec2 at = vUv - offset;
+    vec2 at = vUv - vec2( cos( turn ), -sin( turn ) ) * remap( shift, 0.0, 0.25 ) * round_uv;
 
     float count_inverse = 1.0 / float( fetches );
     float outside = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        vec2 step_uv = vogel_scatter( it, count_inverse, stochastic ) * spread;
-
-        outside += 1.0 - sample_it( at + step_uv ).w;
+        outside += 1.0
+            - sample_it( at + vogel_scatter( it, count_inverse, stochastic ) * spread ).w;
     }
 
     float shade = clamp( outside * count_inverse * remap( force, 0.0, 2.0 ), 0.0, 1.0 );
+    shade = clamp( shade * ( 1.0 + scatter( grain ) ), 0.0, 1.0 ) * texel.w;
 
-    vec3 scatter = fract( ( vUv * c_noise_scale ).xyx * 0.1031 );
-    scatter += dot( scatter, scatter.yzx + 33.33 );
-    float grain_value = fract( ( scatter.x + scatter.y ) * scatter.z );
-
-    shade *= 1.0 + ( grain_value - 0.5 ) * grain;
-    shade = clamp( shade, 0.0, 1.0 ) * color.w;
-
-    gl_FragColor = vec4( mix( color.xyz, tint, shade ), color.w );
+    gl_FragColor = vec4( mix( texel.xyz, tint, shade ), texel.w );
 }

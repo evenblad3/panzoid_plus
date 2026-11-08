@@ -1,7 +1,7 @@
 uniform float force;
+uniform vec3 tint;
 uniform float scale;
 uniform float feather;
-uniform vec3 tint;
 
 void main() {
     float aspect = aspect_ratio();
@@ -12,12 +12,13 @@ void main() {
     vec2 cell = floor( cells );
     vec2 inside = fract( cells ) - 0.5;
 
-    vec2 at = vec2( ( cell.x + 0.5 ) * cell_size / aspect, ( cell.y + 0.5 ) * cell_size );
-    vec4 texel = sample_it( at );
+    vec4 texel = sample_it( vec2(
+        ( cell.x + 0.5 ) * cell_size / aspect, ( cell.y + 0.5 ) * cell_size ) );
 
-    float radius = remap( force, 0.05, 0.8 ) * 0.5;
-    float edge = max( feather, c_epsilon ) * radius;
-    float dot_mask = smoothstep( radius + edge, radius - edge, length( inside ) );
+    float radius = sqrt( clamp( luma( texel.xyz ), 0.0, 1.0 ) ) * 0.5;
+    float edge = max( feather, c_epsilon ) * max( radius, c_epsilon );
+    float ink = smoothstep( radius + edge, radius - edge, length( inside ) );
 
-    gl_FragColor = vec4( texel.xyz * tint, texel.w ) * dot_mask;
+    gl_FragColor = mix( sample_it( vUv ), vec4( texel.xyz * tint, texel.w ) * ink,
+        clamp( force, 0.0, 1.0 ) );
 }

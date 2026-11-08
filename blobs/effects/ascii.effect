@@ -1,43 +1,46 @@
 uniform float force;
+uniform vec3 tint;
 uniform float scale;
+
+float hex_glyph( float digit ) {
+    if( digit < 1.0 ) return 432534.0;
+    if( digit < 2.0 ) return 467506.0;
+    if( digit < 3.0 ) return 988807.0;
+    if( digit < 4.0 ) return 493191.0;
+    if( digit < 5.0 ) return 561049.0;
+    if( digit < 6.0 ) return 493343.0;
+    if( digit < 7.0 ) return 431894.0;
+    if( digit < 8.0 ) return 140431.0;
+    if( digit < 9.0 ) return 431766.0;
+    if( digit < 10.0 ) return 429718.0;
+    if( digit < 11.0 ) return 630678.0;
+    if( digit < 12.0 ) return 497559.0;
+    if( digit < 13.0 ) return 921886.0;
+    if( digit < 14.0 ) return 498071.0;
+    if( digit < 15.0 ) return 988959.0;
+
+    return 71455.0;
+}
 
 void main() {
     vec2 pixel = vUv * buffer_size();
 
-    float cell = 8.0 * remap( scale, 1.0, 8.0 );
-    vec3 color = sample_it( floor( pixel / cell ) * cell * texel_size() ).xyz;
+    vec2 cell = vec2( 6.0, 10.0 ) * remap( scale, 1.0, 6.0 );
+    vec2 cell_at = floor( pixel / cell );
 
-    float grey = dot( color, c_luma );
+    vec4 texel = sample_it( ( cell_at + 0.5 ) * cell * texel_size() );
+    float digit = floor( clamp( luma( texel.xyz ), 0.0, 0.999 ) * 16.0 );
 
-    float bits = 4096.0;
-    if( grey > 0.05 ) bits = 215.0;
-    if( grey > 0.1 ) bits = 899.0;
-    if( grey > 0.15 ) bits = 2523.0;
-    if( grey > 0.2 ) bits = 65600.0;
-    if( grey > 0.25 ) bits = 163153.0;
-    if( grey > 0.3 ) bits = 321476.0;
-    if( grey > 0.35 ) bits = 669792.0;
-    if( grey > 0.4 ) bits = 15255086.0;
-    if( grey > 0.45 ) bits = 46204812.0;
-    if( grey > 0.5 ) bits = 13121101.0;
-    if( grey > 0.55 ) bits = 31759849.0;
-    if( grey > 0.6 ) bits = 15252014.0;
-    if( grey > 0.65 ) bits = 26098780.0;
-    if( grey > 0.7 ) bits = 13195790.0;
-    if( grey > 0.75 ) bits = 18146145.0;
-    if( grey > 0.8 ) bits = 11512810.0;
-    if( grey > 0.85 ) bits = 24086588.0;
-    if( grey > 0.9 ) bits = 33550336.0;
-    if( grey > 0.95 ) bits = 50331647.0;
-
-    vec2 spot = floor( ( mod( pixel / ( 4.0 * remap( scale, 1.0, 8.0 ) ), 2.0 ) - 1.0 ) * vec2( -4.0, 4.0 ) + 2.5 );
+    vec2 inside = floor( ( pixel - cell_at * cell ) * vec2( 6.0, 7.0 ) / cell ) - 1.0;
 
     float lit = 0.0;
-    if( clamp( spot.x, 0.0, 4.0 ) == spot.x && clamp( spot.y, 0.0, 4.0 ) == spot.y ) {
-        lit = ( mod( floor( bits / pow( 2.0, spot.x + spot.y * 5.0 ) ), 2.0 ) == 1.0 ) ? 1.0 : 0.0;
+
+    if( inside.x >= 0.0 && inside.x < 4.0 && inside.y >= 0.0 && inside.y < 5.0 ) {
+        lit = mod( floor( hex_glyph( digit )
+            / pow( 2.0, inside.x + ( 4.0 - inside.y ) * 4.0 ) ), 2.0 );
     }
 
-    vec4 made = vec4( color * lit, 1.0 );
+    vec4 made = vec4( texel.xyz * tint * lit, texel.w );
 
     gl_FragColor = mix( sample_it( vUv ), made, clamp( force, 0.0, 1.0 ) );
 }

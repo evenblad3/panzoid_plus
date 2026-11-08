@@ -1,5 +1,18 @@
 [
     {
+        "serial": "antialiasing_plus",
+        "name": "Antialiasing+",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "antialiasing_plus.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"threshold","variant":"number","any":0.3,"near":0,"far":1},
+            {"name":"sharpness","variant":"number","any":0.75,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":20,"near":4,"far":48,"fixed":true}
+        ]
+    },
+    {
         "serial": "blur_bokeh",
         "name": "Blur Bokeh",
         "description": "todo description",
@@ -34,8 +47,9 @@
         "internal": "blur_edge.effect",
         "controls": [
             {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
             {"name":"size","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"highlight","variant":"number","any":0.473684,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.25,"near":0,"far":1},
             {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"fetches","variant":"number","any":256,"near":8,"far":256,"fixed":true}
@@ -49,7 +63,7 @@
         "internal": "blur_radial_plus.effect",
         "controls": [
             {"name":"force","variant":"number","any":0.4,"near":0,"far":1},
-            {"name":"center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
             {"name":"highlight","variant":"number","any":0.473684,"near":0,"far":1},
             {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
@@ -65,7 +79,7 @@
             {"name":"force","variant":"number","any":0.13,"near":0,"far":1},
             {"name":"angle","variant":"number","any":0,"near":0,"far":360},
             {"name":"ridge","variant":"number","any":1,"near":0,"far":1},
-            {"name":"softness","variant":"number","any":0.222222,"near":0,"far":1},
+            {"name":"radius","variant":"number","any":0.222222,"near":0,"far":1},
             {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"fetches","variant":"number","any":128,"near":4,"far":128,"fixed":true}
         ]
@@ -79,7 +93,8 @@
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"radius","variant":"number","any":0.126984,"near":0,"far":1},
-            {"name":"alpha_too","variant":"number","any":0,"near":0,"far":1}
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":25,"near":9,"far":64,"fixed":true}
         ]
     },
     {
@@ -95,6 +110,21 @@
         ]
     },
     {
+        "serial": "blur_channel",
+        "name": "Blur Channel",
+        "description": "todo description",
+        "tab": "blur",
+        "internal": "blur_channel.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":0.1,"near":0,"far":1},
+            {"name":"red","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"green","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"blue","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"fetches","variant":"number","any":128,"near":8,"far":256,"fixed":true}
+        ]
+    },
+    {
         "serial": "tint",
         "name": "Tint",
         "description": "todo description",
@@ -107,28 +137,32 @@
     },
     {
         "serial": "color_expansion",
-        "name": "Color expansion",
+        "name": "Color Expansion",
         "description": "todo description",
         "tab": "color",
         "internal": "color_expansion.effect",
         "controls": [
-            {"name":"force","variant":"number","any":0.1,"near":0,"far":1}
+            {"name":"force","variant":"number","any":0.1,"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"protect","variant":"number","any":0.5,"near":0,"far":1}
         ]
     },
     {
         "serial": "leave_color",
-        "name": "Leave color",
+        "name": "Leave Color",
         "description": "todo description",
         "tab": "color",
         "internal": "leave_color.effect",
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]}
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"protect","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.2,"near":0,"far":1}
         ]
     },
     {
         "serial": "invert_channel",
-        "name": "Invert channel",
+        "name": "Invert Channel",
         "description": "todo description",
         "tab": "color",
         "internal": "invert_channel.effect",
@@ -139,12 +173,13 @@
     },
     {
         "serial": "chromatic_aberration",
-        "name": "Chromatic aberration",
+        "name": "Chromatic Aberration",
         "description": "todo description",
         "tab": "color",
         "internal": "chromatic_aberration.effect",
         "controls": [
             {"name":"force","variant":"number","any":0.125,"near":0,"far":1},
+            {"name":"angle","variant":"number","any":0,"near":0,"far":360},
             {"name":"red","variant":"number","any":0.25,"near":0,"far":1},
             {"name":"green","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"blue","variant":"number","any":0.25,"near":0,"far":1},
@@ -160,17 +195,15 @@
         "internal": "colorisma.effect",
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint_shadow","variant":"color","any":[1,1,1]},
-            {"name":"tint_highlight","variant":"color","any":[1,1,1]},
             {"name":"low","variant":"number","any":0.25,"near":0,"far":1},
             {"name":"mid","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"high","variant":"number","any":0.75,"near":0,"far":1},
-            {"name":"saturation","variant":"number","any":0.25,"near":0,"far":1}
+            {"name":"saturation","variant":"number","any":0.5,"near":0,"far":1}
         ]
     },
     {
         "serial": "warp_waves",
-        "name": "Warp waves",
+        "name": "Warp Waves",
         "description": "todo description",
         "tab": "distort",
         "internal": "warp_waves.effect",
@@ -181,31 +214,17 @@
         ]
     },
     {
-        "serial": "split",
-        "name": "Split",
-        "description": "todo description",
-        "tab": "distort",
-        "internal": "split.effect",
-        "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"point_a","variant":"vec2","any":[0.416667,0.5],"near":0,"far":1},
-            {"name":"point_b","variant":"vec2","any":[0.583333,0.5],"near":0,"far":1},
-            {"name":"split_a","variant":"number","any":0.52,"near":0,"far":1},
-            {"name":"split_b","variant":"number","any":0.53,"near":0,"far":1}
-        ]
-    },
-    {
         "serial": "turbulent_displace",
-        "name": "Turbulent displace",
+        "name": "Turbulent Displace",
         "description": "todo description",
         "tab": "distort",
         "internal": "turbulent_displace.effect",
         "controls": [
             {"name":"force","variant":"number","any":0.125,"near":0,"far":1},
             {"name":"size","variant":"number","any":0.246231,"near":0,"far":1},
-            {"name":"offset","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
             {"name":"complexity","variant":"number","any":3,"near":1,"far":8},
-            {"name":"evolution","variant":"number","any":0,"near":0},
+            {"name":"time","variant":"number","any":0,"near":0},
             {"name":"smoother","variant":"number","any":0,"near":0,"far":1}
         ]
     },
@@ -218,23 +237,10 @@
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"segments","variant":"number","any":6,"near":1,"far":16},
-            {"name":"rotation","variant":"number","any":0,"near":0,"far":1},
+            {"name":"rotation","variant":"number","any":0,"near":0,"far":360},
             {"name":"twist","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"offset","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
             {"name":"scale","variant":"vec2","any":[0.183673,0.183673],"near":0,"far":1}
-        ]
-    },
-    {
-        "serial": "optics_compensation",
-        "name": "Optics compensation",
-        "description": "todo description",
-        "tab": "distort",
-        "internal": "optics_compensation.effect",
-        "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"angle","variant":"number","any":60,"near":0,"far":179},
-            {"name":"view_center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"reverse","variant":"number","any":0,"near":0,"far":1}
         ]
     },
     {
@@ -247,7 +253,7 @@
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"stretch","variant":"vec4","any":[0.230769,0.230769,0.230769,0.230769],"near":0,"far":1},
             {"name":"scale","variant":"number","any":0.090909,"near":0,"far":1},
-            {"name":"rotation","variant":"vec2","any":[0.5,0.5],"near":0,"far":1}
+            {"name":"rotation","variant":"vec2","any":[0,0],"near":0,"far":360}
         ]
     },
     {
@@ -259,7 +265,7 @@
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"anchor","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
             {"name":"size","variant":"vec2","any":[0.096386,0.096386],"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
         ]
@@ -273,22 +279,22 @@
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"anchor","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
             {"name":"size","variant":"vec2","any":[0.156627,0.156627],"near":0,"far":1},
-            {"name":"border","variant":"number","any":0.030303,"near":0,"far":1},
+            {"name":"thickness","variant":"number","any":0.030303,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.04,"near":0,"far":1}
         ]
     },
     {
         "serial": "venetian_blinds",
-        "name": "Venetian blinds",
+        "name": "Venetian Blinds",
         "description": "todo description",
         "tab": "generate",
         "internal": "venetian_blinds.effect",
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"width","variant":"number","any":0.018036,"near":0,"far":1},
-            {"name":"angle","variant":"number","any":0,"near":0,"far":1},
+            {"name":"thickness","variant":"number","any":0.018036,"near":0,"far":1},
+            {"name":"angle","variant":"number","any":0,"near":0,"far":360},
             {"name":"margin","variant":"number","any":0.555556,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
         ]
@@ -302,7 +308,7 @@
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"width","variant":"number","any":0.25,"near":0,"far":1},
+            {"name":"thickness","variant":"number","any":0.25,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.2,"near":0,"far":1},
             {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"fetches","variant":"number","any":256,"near":8,"far":512,"fixed":true}
@@ -310,7 +316,7 @@
     },
     {
         "serial": "light_sweep",
-        "name": "Light sweep",
+        "name": "Light Sweep",
         "description": "todo description",
         "tab": "generate",
         "internal": "light_sweep.effect",
@@ -318,20 +324,33 @@
             {"name":"force","variant":"number","any":0.166667,"near":0,"far":1},
             {"name":"tint","variant":"color","any":[1,1,1]},
             {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"width","variant":"number","any":0.083333,"near":0,"far":1},
+            {"name":"thickness","variant":"number","any":0.083333,"near":0,"far":1},
             {"name":"angle","variant":"number","any":110,"near":0,"far":360},
             {"name":"feather","variant":"number","any":0.2,"near":0,"far":1}
         ]
     },
     {
+        "serial": "blocks",
+        "name": "Blocks",
+        "description": "todo description",
+        "tab": "generate",
+        "internal": "blocks.effect",
+        "controls": [
+            {"name":"force","variant":"number","any":1,"near":0,"far":1},
+            {"name":"scale","variant":"number","any":0.12,"near":0,"far":1},
+            {"name":"position","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
+        ]
+    },
+    {
         "serial": "shadow_drop",
-        "name": "Shadow drop",
+        "name": "Shadow Drop",
         "description": "todo description",
         "tab": "perspective",
         "internal": "shadow_drop.effect",
         "controls": [
             {"name":"force","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[0,0,0]},
+            {"name":"tint","variant":"color","any":[1,1,1]},
             {"name":"angle","variant":"number","any":135,"near":0,"far":360},
             {"name":"shift","variant":"number","any":0.04,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.08,"near":0,"far":1},
@@ -342,13 +361,13 @@
     },
     {
         "serial": "shadow_inner",
-        "name": "Shadow inner",
+        "name": "Shadow Inner",
         "description": "todo description",
         "tab": "perspective",
         "internal": "shadow_inner.effect",
         "controls": [
             {"name":"force","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[0,0,0]},
+            {"name":"tint","variant":"color","any":[1,1,1]},
             {"name":"angle","variant":"number","any":135,"near":0,"far":360},
             {"name":"shift","variant":"number","any":0.04,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.06,"near":0,"far":1},
@@ -374,13 +393,13 @@
     },
     {
         "serial": "ambient_occlusion",
-        "name": "Ambient occlusion",
+        "name": "Ambient Occlusion",
         "description": "todo description",
         "tab": "perspective",
         "internal": "ambient_occlusion.effect",
         "controls": [
             {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[0,0,0]},
+            {"name":"tint","variant":"color","any":[1,1,1]},
             {"name":"radius","variant":"number","any":0.333333,"near":0,"far":1},
             {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
@@ -396,8 +415,7 @@
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"tint","variant":"color","any":[1,1,1]},
             {"name":"angle","variant":"number","any":135,"near":0,"far":360},
-            {"name":"back","variant":"number","any":0.15,"near":0,"far":1},
-            {"name":"front","variant":"number","any":0.2,"near":0,"far":1},
+            {"name":"caps","variant":"vec2","any":[0.15,0.2],"near":0,"far":1},
             {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"fetches","variant":"number","any":256,"near":16,"far":256,"fixed":true}
         ]
@@ -411,8 +429,9 @@
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
             {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"saturation","variant":"number","any":1,"near":0,"far":1},
-            {"name":"portion_size","variant":"number","any":4,"near":2,"far":16},
+            {"name":"saturation","variant":"number","any":0.5,"near":0,"far":1},
+            {"name":"posterize","variant":"number","any":0.142857,"near":0,"far":1},
+            {"name":"feather","variant":"number","any":0.1,"near":0,"far":1},
             {"name":"exposure","variant":"number","any":0.285714,"near":0,"far":1}
         ]
     },
@@ -424,7 +443,10 @@
         "internal": "dither.effect",
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"posterize","variant":"number","any":0.6,"near":0,"far":1}
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"posterize","variant":"number","any":0.6,"near":0,"far":1},
+            {"name":"scale","variant":"number","any":0,"near":0,"far":1},
+            {"name":"saturation","variant":"number","any":0.5,"near":0,"far":1}
         ]
     },
     {
@@ -435,7 +457,8 @@
         "internal": "ascii.effect",
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"scale","variant":"number","any":0,"near":0,"far":1}
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"scale","variant":"number","any":0.2,"near":0,"far":1}
         ]
     },
     {
@@ -462,7 +485,6 @@
             {"name":"tint","variant":"color","any":[1,1,1]},
             {"name":"thickness","variant":"number","any":0.096774,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.292929,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
             {"name":"fetches","variant":"number","any":64,"near":4,"far":64,"fixed":true}
         ]
     },
@@ -490,8 +512,8 @@
         "internal": "vignette.effect",
         "controls": [
             {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[0,0,0]},
-            {"name":"center","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
+            {"name":"tint","variant":"color","any":[1,1,1]},
+            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
             {"name":"size","variant":"number","any":0.310345,"near":0,"far":1},
             {"name":"feather","variant":"number","any":0.246231,"near":0,"far":1}
         ]
