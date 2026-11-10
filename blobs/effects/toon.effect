@@ -1,16 +1,18 @@
 uniform float force;
+
 uniform vec3 tint;
 uniform float saturation;
 uniform float posterize;
-uniform float feather;
 uniform float exposure;
 
-void main() {
-    vec4 texel = sample_it( vUv );
+uniform float feather;
 
-    float steps = max( remap( posterize, 2.0, 16.0 ), 2.0 );
-    float bright = pow( clamp( luma( texel.xyz ), 0.0, 1.0 ),
-        max( remap( exposure, 0.2, 3.0 ), c_epsilon ) );
+void main() {
+    vec4 texel = sample_texel( vUv );
+
+    float steps = max( remap_float( posterize, 2.0, 16.0 ), 2.0 );
+    float bright = pow( clamp( get_luma( texel.xyz ), 0.0, 1.0 ),
+        max( remap_float( exposure, 0.2, 3.0 ), c_epsilon ) );
 
     float along = bright * ( steps - 1.0 );
     float edge = max( clamp( feather, 0.0, 1.0 ), c_epsilon ) * 0.5;
@@ -19,7 +21,7 @@ void main() {
         / ( steps - 1.0 );
 
     vec3 shade = clamp( mix( vec3( stepped ), texel.xyz * stepped / max( bright, c_epsilon ),
-        remap( saturation, 0.0, 2.0 ) ), 0.0, 1.0 );
+        remap_float( saturation, 0.0, 2.0 ) ), 0.0, 1.0 );
 
     gl_FragColor = vec4( mix( texel.xyz, shade * tint, clamp( force, 0.0, 1.0 ) ), texel.w );
 }

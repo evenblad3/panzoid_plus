@@ -1,8 +1,10 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform float scale;
 
-float hex_glyph( float digit ) {
+float get_glyph( float digit ) {
     if( digit < 1.0 ) return 432534.0;
     if( digit < 2.0 ) return 467506.0;
     if( digit < 3.0 ) return 988807.0;
@@ -23,24 +25,23 @@ float hex_glyph( float digit ) {
 }
 
 void main() {
-    vec2 pixel = vUv * buffer_size();
+    vec2 pixel = vUv * get_resolution();
 
-    vec2 cell = vec2( 6.0, 10.0 ) * remap( scale, 1.0, 6.0 );
+    vec2 cell = vec2( 6.0, 10.0 ) * remap_float( scale, 1.0, 6.0 );
     vec2 cell_at = floor( pixel / cell );
 
-    vec4 texel = sample_it( ( cell_at + 0.5 ) * cell * texel_size() );
-    float digit = floor( clamp( luma( texel.xyz ), 0.0, 0.999 ) * 16.0 );
+    vec4 texel = sample_texel( ( cell_at + 0.5 ) * cell * get_texel_step() );
+    float digit = floor( clamp( get_luma( texel.xyz ), 0.0, 0.999 ) * 16.0 );
 
     vec2 inside = floor( ( pixel - cell_at * cell ) * vec2( 6.0, 7.0 ) / cell ) - 1.0;
 
     float lit = 0.0;
 
     if( inside.x >= 0.0 && inside.x < 4.0 && inside.y >= 0.0 && inside.y < 5.0 ) {
-        lit = mod( floor( hex_glyph( digit )
+        lit = mod( floor( get_glyph( digit )
             / pow( 2.0, inside.x + ( 4.0 - inside.y ) * 4.0 ) ), 2.0 );
     }
 
-    vec4 made = vec4( texel.xyz * tint * lit, texel.w );
-
-    gl_FragColor = mix( sample_it( vUv ), made, clamp( force, 0.0, 1.0 ) );
+    gl_FragColor = mix( sample_texel( vUv ),
+        vec4( texel.xyz * tint * lit, texel.w ), clamp( force, 0.0, 1.0 ) );
 }

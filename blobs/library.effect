@@ -1,84 +1,66 @@
-const float c_epsilon = 0.000001;
-const float c_golden_angle = 2.399963;
-const float c_turn = 6.283185;
+const float c_epsilon = 0.000021;
+
+const float c_pi2 = 6.283185;
+const float c_golden = 2.399963;
 
 const vec3 c_luma = vec3( 0.2126, 0.7152, 0.0722 );
 
-#define sample_it( it ) texture2D( tDiffuse, clamp( it, 0.0, 1.0 ) * uvScale )
-#define luma_it( it ) dot( sample_it( it ).xyz, c_luma )
+#define sample_texel( texel ) texture2D( tDiffuse, clamp( texel, 0.0, 1.0 ) * uvScale )
+#define sample_texel_luma( texel ) dot( sample_texel( texel ).xyz, c_luma )
 
-#define remap( any, near, far ) ( ( near ) + ( ( far ) - ( near ) ) * ( any ) )
-#define remap_signed( any, far ) ( ( far ) * ( ( any ) * 2.0 - 1.0 ) )
+#define remap_float( any, near, far ) ( near + ( far - near ) * any )
+#define remap_signed( any, far ) ( far * ( any * 2.0 - 1.0 ) )
 
-vec2 buffer_size() {
+vec2 get_resolution() {
     return gl_FragCoord.xy / max( vUv, vec2( c_epsilon ) );
 }
 
-float aspect_ratio() {
-    vec2 size = buffer_size();
-    return size.x / size.y;
+vec2 get_texel_step() {
+    return 1.0 / max( get_resolution(), vec2( 1.0 ) );
 }
 
-vec2 round_offset() {
-    vec2 size = buffer_size();
-    return vec2( size.y / size.x, 1.0 );
-}
+vec2 get_texel_round() {
+    vec2 size = get_resolution();
 
-vec2 round_coordinate() {
-    vec2 size = buffer_size();
     return vec2( size.x / size.y, 1.0 );
 }
 
-vec2 texel_size() {
-    return 1.0 / max( buffer_size(), vec2( 1.0 ) );
-}
-
-float luma( vec3 tint ) {
+float get_luma( vec3 tint ) {
     return dot( tint, c_luma );
 }
 
-float dither_noise( vec2 it ) {
-    vec2 one = floor( it );
-    vec2 two = floor( it * 0.5 );
-    vec2 four = floor( it * 0.25 );
+float get_dither( vec2 texel ) {
+    vec2 one = floor( texel );
+    vec2 two = floor( texel * 0.5 );
+    vec2 four = floor( texel * 0.25 );
 
     return fract( four.x * 0.5 + four.y * four.y * 0.75 ) * 0.0625
         + fract( two.x * 0.5 + two.y * two.y * 0.75 ) * 0.25
         + fract( one.x * 0.5 + one.y * one.y * 0.75 );
 }
 
-vec2 hash_pair( vec2 at ) {
-    vec3 drift = fract( at.xyx * vec3( 0.1031, 0.103, 0.0973 ) );
+vec2 get_hash( vec2 texel ) {
+    vec3 drift = fract( texel.xyx * vec3( 0.1031, 0.103, 0.0973 ) );
     drift += dot( drift, drift.yzx + 33.33 );
 
     return fract( ( drift.xx + drift.yz ) * drift.zy );
 }
 
-vec2 stochastic_pair() {
-    return hash_pair( vUv * buffer_size() );
+vec2 get_stochastic() {
+    return get_hash( vUv * get_resolution() );
 }
 
-float stochastic_noise() {
-    return stochastic_pair().x;
+float get_stochastic_scatter( float width ) {
+    return ( get_stochastic().x - 0.5 ) * width;
 }
 
-float scatter( float width ) {
-    return ( stochastic_noise() - 0.5 ) * width;
-}
+vec2 get_vogel_scatter( int it, float count_inverse, float stochastic ) {
+    vec2 jitter = get_stochastic();
 
-vec2 vogel_offset( int it, float count_inverse ) {
-    float along = sqrt( ( float( it ) + 0.5 ) * count_inverse );
-    float spin = float( it ) * c_golden_angle;
-
-    return vec2( cos( spin ), sin( spin ) ) * along;
-}
-
-vec2 vogel_scatter( int it, float count_inverse, float stochastic ) {
-    vec2 jitter = stochastic_pair();
-
-    float along = sqrt( ( float( it ) + 0.5
-        + ( jitter.x - 0.5 ) * stochastic ) * count_inverse );
-    float spin = float( it ) * c_golden_angle + jitter.y * stochastic * c_turn;
+    float along = sqrt(
+        ( float( it ) + 0.5 + ( jitter.x - 0.5 ) * stochastic ) * count_inverse
+    );
+    float spin = float( it ) * c_golden + jitter.y * stochastic * c_pi2;
 
     return vec2( cos( spin ), sin( spin ) ) * along;
 }

@@ -1,37 +1,55 @@
 uniform float force;
+
+uniform float radius;
 uniform float angle;
 uniform float ridge;
-uniform float radius;
+
 uniform float stochastic;
 
-void main() {
-    vec2 step_uv = max( remap( radius, 1.0, 64.0 ), 1.0 ) * texel_size();
-
-    float left = luma_it( vUv - vec2( step_uv.x, 0.0 ) );
-    float right = luma_it( vUv + vec2( step_uv.x, 0.0 ) );
-    float down = luma_it( vUv - vec2( 0.0, step_uv.y ) );
-    float up = luma_it( vUv + vec2( 0.0, step_uv.y ) );
+vec3 get_flow( vec2 texel, vec2 step_uv, float cosine, float sine ) {
+    float left = sample_texel_luma( texel - vec2( step_uv.x, 0.0 ) );
+    float right = sample_texel_luma( texel + vec2( step_uv.x, 0.0 ) );
+    float down = sample_texel_luma( texel - vec2( 0.0, step_uv.y ) );
+    float up = sample_texel_luma( texel + vec2( 0.0, step_uv.y ) );
 
     vec2 slope = vec2( right - left, up - down );
     float steep = length( slope );
+
+    if( steep < c_epsilon ) return vec3( 0.0 );
+
+    vec2 way = vec2( -slope.y, slope.x ) / steep;
+
+    return vec3( way.x * cosine - way.y * sine, way.x * sine + way.y * cosine, steep );
+}
+
+void main() {
+    vec2 step_uv = max( remap_float( radius, 1.0, 64.0 ), 1.0 ) * get_texel_step();
 
     float turn = radians( angle );
     float cosine = cos( turn );
     float sine = sin( turn );
 
-    vec2 way = ( steep > c_epsilon )? vec2( -slope.y, slope.x ) / steep: vec2( 0.0 );
-    way = vec2( way.x * cosine - way.y * sine, way.x * sine + way.y * cosine );
+    vec3 flow = get_flow( vUv, step_uv, cosine, sine );
+    float carry = mix( 1.0, smoothstep( 0.0, 0.25, flow.z ), clamp( ridge, 0.0, 1.0 ) );
 
-    float carry = mix( 1.0, smoothstep( 0.0, 0.25, steep ), clamp( ridge, 0.0, 1.0 ) );
-    vec2 spread = way * carry * remap( force, 0.0, 200.0 ) * 0.01 * round_offset();
+    vec2 stride = remap_float( force, 0.0, 200.0 ) * 0.01 * carry
+        / ( float( fetches ) * get_texel_round() );
 
-    float span_inverse = 1.0 / max( float( fetches ) - 1.0, 1.0 );
-    vec4 total = vec4( 0.0 );
+    vec2 jitter = ( get_stochastic() - 0.5 ) * stochastic;
 
-    for( int it = 0; it < int( fetches ); ++it ) {
-        total += sample_it( vUv
-            + spread * ( ( float( it ) + scatter( stochastic ) ) * span_inverse - 0.5 ) );
+    vec2 ahead = vUv + stride * jitter.x;
+    vec2 behind = vUv + stride * jitter.y;
+
+    vec4 total = sample_texel( vUv );
+    float count = 1.0;
+
+    for( int it = 0; it < int( fetches ) / 2; ++it ) {
+        ahead += get_flow( ahead, step_uv, cosine, sine ).xy * stride;
+        behind -= get_flow( behind, step_uv, cosine, sine ).xy * stride;
+
+        total += sample_texel( ahead ) + sample_texel( behind );
+        count += 2.0;
     }
 
-    gl_FragColor = total / float( fetches );
+    gl_FragColor = total / count;
 }

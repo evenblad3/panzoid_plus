@@ -2,9 +2,10 @@ extension.ready = extension.ready || [];
 extension.ready.push( function () {
     "use strict";
 
-    const clipmaker = /^https:\/\/([a-z0-9-]+\.)?panzoid\.com\/(tools|legacy)\/gen3\/clipmaker/i;
+    const clipmaker =
+        /^https:\/\/([a-z0-9-]+\.)?panzoid\.com\/(tools|legacy)\/gen3\/clipmaker/i;
 
-    function send_to_editor( clip ) {
+    function editor_send( clip ) {
         chrome.tabs.query( { active: true, currentWindow: true }, function ( tabs ) {
             if( !tabs.length || !clipmaker.test( tabs[ 0 ].url || "" ) ) return;
 
@@ -15,7 +16,7 @@ extension.ready.push( function () {
         } );
     }
 
-    function send_to_clipboard( clip ) {
+    function clipboard_send( clip ) {
         try {
             navigator.clipboard.writeText( clip ).catch( function () {} );
         } catch( error ) {}
@@ -28,8 +29,8 @@ extension.ready.push( function () {
         button.addEventListener( "click", function () {
             const clip = extension.effect.build_json( effect );
 
-            send_to_editor( clip );
-            send_to_clipboard( clip );
+            editor_send( clip );
+            clipboard_send( clip );
         } );
     } );
 } );

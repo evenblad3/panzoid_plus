@@ -1,8 +1,9 @@
 uniform float force;
+
 uniform vec3 tint;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
     float matched = smoothstep( force, force - 0.5, distance( texel.xyz, tint ) );
 

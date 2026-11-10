@@ -1,33 +1,33 @@
 uniform float force;
-uniform float threshold;
-uniform float sharpness;
 
 const float c_contrast_floor = 0.0312;
+const float c_contrast_scale = 0.063;
 const float c_stride_cap = 8.0;
+const int c_steps = 24;
 
 void main() {
-    vec4 texel = sample_it( vUv );
-    vec2 step_uv = texel_size();
+    vec4 texel = sample_texel( vUv );
+    vec2 step_uv = get_texel_step();
 
-    float middle = luma_it( vUv );
-    float north = luma_it( vUv + vec2( 0.0, step_uv.y ) );
-    float south = luma_it( vUv - vec2( 0.0, step_uv.y ) );
-    float east = luma_it( vUv + vec2( step_uv.x, 0.0 ) );
-    float west = luma_it( vUv - vec2( step_uv.x, 0.0 ) );
+    float middle = sample_texel_luma( vUv );
+    float north = sample_texel_luma( vUv + vec2( 0.0, step_uv.y ) );
+    float south = sample_texel_luma( vUv - vec2( 0.0, step_uv.y ) );
+    float east = sample_texel_luma( vUv + vec2( step_uv.x, 0.0 ) );
+    float west = sample_texel_luma( vUv - vec2( step_uv.x, 0.0 ) );
 
     float highest = max( middle, max( max( north, south ), max( east, west ) ) );
     float lowest = min( middle, min( min( north, south ), min( east, west ) ) );
     float range = highest - lowest;
 
-    if( range < max( c_contrast_floor, highest * remap( threshold, 0.03, 0.25 ) ) ) {
+    if( range < max( c_contrast_floor, highest * c_contrast_scale ) ) {
         gl_FragColor = texel;
         return;
     }
 
-    float north_west = luma_it( vUv + vec2( -step_uv.x, step_uv.y ) );
-    float north_east = luma_it( vUv + step_uv );
-    float south_west = luma_it( vUv - step_uv );
-    float south_east = luma_it( vUv + vec2( step_uv.x, -step_uv.y ) );
+    float north_west = sample_texel_luma( vUv + vec2( -step_uv.x, step_uv.y ) );
+    float north_east = sample_texel_luma( vUv + step_uv );
+    float south_west = sample_texel_luma( vUv - step_uv );
+    float south_east = sample_texel_luma( vUv + vec2( step_uv.x, -step_uv.y ) );
 
     float up_down = north + south;
     float left_right = east + west;
@@ -60,8 +60,8 @@ void main() {
     vec2 back = middle_at - walk;
     vec2 forth = middle_at + walk;
 
-    float back_apart = luma_it( back ) - edge_luma;
-    float forth_apart = luma_it( forth ) - edge_luma;
+    float back_apart = sample_texel_luma( back ) - edge_luma;
+    float forth_apart = sample_texel_luma( forth ) - edge_luma;
 
     bool back_done = abs( back_apart ) >= slope;
     bool forth_done = abs( forth_apart ) >= slope;
@@ -69,7 +69,7 @@ void main() {
     float back_reach = 1.0;
     float forth_reach = 1.0;
 
-    for( int it = 0; it < int( fetches ); ++it ) {
+    for( int it = 0; it < c_steps; ++it ) {
         if( back_done && forth_done ) break;
 
         float stride = min( exp2( max( 0.0, float( it ) - 4.0 ) ), c_stride_cap );
@@ -78,7 +78,7 @@ void main() {
             back -= walk * stride;
             back_reach += stride;
 
-            back_apart = luma_it( back ) - edge_luma;
+            back_apart = sample_texel_luma( back ) - edge_luma;
             back_done = abs( back_apart ) >= slope;
         }
 
@@ -86,7 +86,7 @@ void main() {
             forth += walk * stride;
             forth_reach += stride;
 
-            forth_apart = luma_it( forth ) - edge_luma;
+            forth_apart = sample_texel_luma( forth ) - edge_luma;
             forth_done = abs( forth_apart ) >= slope;
         }
     }
@@ -105,10 +105,10 @@ void main() {
 
     float fine = clamp( abs( around - middle ) / max( range, c_epsilon ), 0.0, 1.0 );
     fine = ( 3.0 - 2.0 * fine ) * fine * fine;
-    fine = fine * fine * clamp( sharpness, 0.0, 1.0 ) * toward;
+    fine = fine * fine * toward;
 
     float moved = ( abs( fine ) > abs( push ) )? fine: push;
     vec2 at = vUv + ( across? vec2( 0.0, moved ): vec2( moved, 0.0 ) );
 
-    gl_FragColor = mix( texel, sample_it( at ), clamp( force, 0.0, 1.0 ) );
+    gl_FragColor = mix( texel, sample_texel( at ), clamp( force, 0.0, 1.0 ) );
 }

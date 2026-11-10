@@ -3,144 +3,180 @@
 
 <head >
     <meta charset = "utf-8" >
-    <title >panzoid+</title>
+    <title >panzoid+</title >
 
     <link rel = "stylesheet" href = "style.css" >
 
-    <script defer src = "../public/effect.js" ></script>
-    <script defer src = "../public/catalogue.js" ></script>
+    <script defer src = "../public/effect.js" ></script >
+    <script defer src = "../public/catalogue.js" ></script >
 
-    <script defer src = "list.js" ></script>
-    <script defer src = "search.js" ></script>
-    <script defer src = "link.js" ></script>
-    <script defer src = "tabs.js" ></script>
-    <script defer src = "transfer.js" ></script>
-    <script defer src = "tweaks.js" ></script>
-    <script defer src = "inspect.js" ></script>
-    <script defer src = "load.js" ></script>
-</head>
+    <script defer src = "list.js" ></script >
+    <script defer src = "search.js" ></script >
+    <script defer src = "link.js" ></script >
+    <script defer src = "tabs.js" ></script >
+    <script defer src = "transfer.js" ></script >
+    <script defer src = "tweaks.js" ></script >
+    <script defer src = "inspect.js" ></script >
+    <script defer src = "load.js" ></script >
+</head >
 
 <body class = "no_select" >
-
     <div class = "rail" >
-        <button type = "button" id = "tab_effects" class = "rail_button rail_on" >Effects</button>
-        <button type = "button" id = "tab_tweaks" class = "rail_button" >Tweaks</button>
-        <button type = "button" id = "tab_inspect" class = "rail_button" >Inspect</button>
-        <button type = "button" id = "tab_readme" class = "rail_button" >Readme</button>
-    </div>
+        <button type = "button" id = "tab_effects" class = "rail_button rail_on" >
+            Effects
+        </button >
+        <button type = "button" id = "tab_tweaks" class = "rail_button" >Tweaks</button >
+        <button type = "button" id = "tab_inspect" class = "rail_button" >Inspect</button >
+
+        <button type = "button" id = "tab_readme" class = "rail_button" >Readme</button >
+    </div >
 
     <div class = "page" >
-
         <div class = "title_row" >
-            <h1 class = "logo" >Panzoid+</h1>
+            <h1 class = "title_name" >Panzoid+</h1 >
             <span >
-                <button type = "button" id = "youtube_button" class = "text_button" >youtube</button>
-                <button type = "button" id = "github_button" class = "text_button" >github</button>
-            </span>
-        </div>
+                <button type = "button" id = "youtube_button"
+                    class = "text_button" >Youtube</button >
+                <button type = "button" id = "github_button"
+                    class = "text_button" >Github</button >
+            </span >
+        </div >
 
         <div id = "pane_effects" >
             <div class = "search_row" >
-                <input type = "text" maxlength = "32" class = "search_field" placeholder = "type to filter" >
-                <span id = "match_count" class = "match_count" ></span>
-            </div>
-            <div id = "no_matches" class = "empty no_select" hidden >nothing matches</div>
-        </div>
+                <input type = "text" maxlength = "32" class = "search_field"
+                    placeholder = "Search" >
+                <span id = "match_count" class = "match_count" ></span >
+            </div >
+            <div id = "no_matches" class = "empty no_select" hidden >nothing matches</div >
+        </div >
 
         <div class = "pane_off" id = "pane_tweaks" >
-
-            <div class = "tweak_note" >These only work while Panzoid+ is installed.
-                They change how Clipmaker draws on this machine and are never saved
-                into your clip, so nobody who opens your project gets them.</div>
+            <div class = "tweak_note" >
+                Tweaks change how Clipmaker runs on this machine. They are never saved into
+                your clip, so nobody who opens your project gets them.
+                <span class = "tweak_warn" >Reload the Clipmaker page after you change one, and
+                save your project first, because a reload drops anything unsaved.</span >
+                Some of them hold on to parts of Clipmaker that are not meant to be used from
+                outside. If the site changes and this extension has not been updated for a
+                while, a tweak can stop working without saying so.
+            </div >
 
             <label class = "tweak" >
-                <span >Anisotropy
-                    <span class = "tweak_hint" >todo description</span>
-                </span>
+                <span >Anisotropic filtering
+                    <span class = "tweak_hint" >A texture seen at a sharp angle is sampled
+                    along the direction it is stretched, not in a square. Floors, walls and
+                    any surface running away from the camera stop going blurry.</span >
+                </span >
                 <select id = "tweak_anisotropy" >
-                    <option value = "on" >on</option>
-                    <option value = "off" >off</option>
-                </select>
-            </label>
+                    <option value = "on" >Enable</option >
+                    <option value = "off" >Disable</option >
+                </select >
+            </label >
 
             <label class = "tweak" >
-                <span >Better shadows
-                    <span class = "tweak_hint" >todo description</span>
-                </span>
-                <select id = "tweak_better_shadows" >
-                    <option value = "on" >on</option>
-                    <option value = "off" >off</option>
-                </select>
-            </label>
-
-            <label class = "tweak" >
-                <span >Fix stretched text
-                    <span class = "tweak_hint" >todo description</span>
-                </span>
-                <select id = "tweak_fix_text_uv" >
-                    <option value = "on" >on</option>
-                    <option value = "off" >off</option>
-                </select>
-            </label>
+                <span >Correct uv calculation
+                    <span class = "tweak_hint" >Clipmaker spreads texture coordinates on
+                    extruded text over the whole box around it, so letters of different widths
+                    get stretched by different amounts. This measures each face on its own, so
+                    the texture keeps one scale across the word.</span >
+                </span >
+                <select id = "tweak_correct_uv" >
+                    <option value = "on" >Enable</option >
+                    <option value = "off" >Disable</option >
+                </select >
+            </label >
 
             <label class = "tweak" >
                 <span >Effects inside Clipmaker
-                    <span class = "tweak_hint" >todo description</span>
-                </span>
+                    <span class = "tweak_hint" >Adds every Panzoid+ effect to the editor's own
+                    effect list, so you can pick one without coming back here to copy
+                    it.</span >
+                </span >
                 <select id = "tweak_mount_effects" >
-                    <option value = "on" >on</option>
-                    <option value = "off" >off</option>
-                </select>
-            </label>
+                    <option value = "on" >Enable</option >
+                    <option value = "off" >Disable</option >
+                </select >
+            </label >
 
             <label class = "tweak" >
                 <span >Precise values
-                    <span class = "tweak_hint" >todo description</span>
-                </span>
+                    <span class = "tweak_hint" >Number fields show and take three decimals
+                    instead of rounding to whole units. Needed for anything that moves slowly
+                    or has to sit a little off centre.</span >
+                </span >
                 <select id = "tweak_precise_values" >
-                    <option value = "on" >on</option>
-                    <option value = "off" >off</option>
-                </select>
-            </label>
+                    <option value = "on" >Enable</option >
+                    <option value = "off" >Disable</option >
+                </select >
+            </label >
 
             <label class = "tweak" >
                 <span >Full resolution preview
-                    <span class = "tweak_hint" >todo description</span>
-                </span>
-                <select id = "tweak_sharp_preview" >
-                    <option value = "on" >on</option>
-                    <option value = "off" >off</option>
-                </select>
-            </label>
+                    <span class = "tweak_hint" >Draws the viewport at the project resolution
+                    instead of the size of the panel, so what you see is what the export will
+                    hold. Costs frame rate on big projects.</span >
+                </span >
+                <select id = "tweak_full_preview" >
+                    <option value = "on" >Enable</option >
+                    <option value = "off" >Disable</option >
+                </select >
+            </label >
 
-        </div>
+        </div >
 
         <div class = "pane_off" id = "pane_inspect" >
-
             <div class = "drop_zone" id = "drop_zone" >
-                drop a .pz or .clip here, or click to pick one
-            </div>
-            <input type = "file" id = "drop_file" accept = ".pz,.clip,.json" hidden >
+                drop a .pz here, or click to pick one
+            </div >
+            <input type = "file" id = "drop_file" accept = ".pz" hidden >
 
-            <div class = "inspect_summary" id = "inspect_summary" >nothing opened yet</div>
-            <div class = "tree" id = "inspect_tree" ></div>
+            <div class = "summary_row" >
+                <div class = "inspect_summary" id = "inspect_summary" >A .pz file is a gzipped
+                tar. Inside sit the project, which describes the whole scene, a small meta
+                file, and every sound, image, font and model the project uses, each one stored
+                under the sha256 of its own contents rather than under its name. Drop one here
+                and the media comes back out named the way you imported it, with models
+                rebuilt as .obj.</div >
+                <button type = "button" id = "inspect_clear" class = "text_button" hidden >
+                    clear
+                </button >
+            </div >
 
-        </div>
+            <div class = "tree" id = "inspect_tree" ></div >
+        </div >
 
         <div class = "pane_off" id = "pane_readme" >
-
             <div class = "review_row" >
-                <button type = "button" id = "review_button" class = "text_button" >leave a review</button>
-            </div>
+                <button type = "button" id = "review_button" class = "text_button" >
+                    Write feedback
+                </button >
+            </div >
 
             <div class = "readme" >
-                <p >todo description</p>
-            </div>
+                <p >Panzoid+ sat untouched for about three years. I came back to it because
+                what it did was never quite the thing I wanted it to do, and I would rather
+                finish it than leave it sitting in the store half done. Most of what is here
+                now was rewritten from scratch.</p >
 
-        </div>
+                <p >If it is useful to you, a review helps more than anything else I can do
+                for it. If something is missing, or behaves stupidly, tell me and I will look
+                at it. Discord @wzrterfx.</p >
 
-    </div>
+                <p >There is no Firefox port and I am not planning one. The tweaks reach into
+                Clipmaker's own internals from a main world content script, and keeping that
+                working against one browser is already enough.</p >
 
-</body>
+                <p >The extension is open for contribution. The main branch of development
+                is the <a href = "https://github.com/evenblad3/panzoid_plus"
+                target = "_blank" rel = "noopener" >Repository</a >. That link may move, so
+                I am not promising it stays valid.</p >
 
-</html>
+                <p >Next on the list are tweaks that fix the bugs in Clipmaker that have been
+                sitting there for seven years or more and were never going to be fixed
+                upstream.</p >
+            </div >
+        </div >
+    </div >
+</body >
+</html >

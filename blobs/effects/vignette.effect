@@ -1,17 +1,19 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform vec2 position;
-uniform float size;
+uniform float scale;
 uniform float feather;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    vec2 round_uv = round_coordinate();
+    vec2 round_uv = get_texel_round();
 
-    float radius = max( remap( size, 0.05, 1.5 ), c_epsilon ) * length( round_uv );
-    float soft = max( remap( feather, 0.01, 2.0 ), c_epsilon ) * radius;
-    float away = length( ( vUv - remap( position, -1.0, 2.0 ) ) * round_uv );
+    float radius = max( remap_float( scale, 0.05, 1.5 ), c_epsilon ) * length( round_uv );
+    float soft = max( remap_float( feather, 0.01, 2.0 ), c_epsilon ) * radius;
+    float away = length( ( vUv - remap_float( position, -1.0, 2.0 ) ) * round_uv );
 
     float fade = smoothstep( radius - soft, radius + soft, away ) * clamp( force, 0.0, 1.0 );
 

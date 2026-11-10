@@ -1,0 +1,56 @@
+uniform float force;
+
+uniform vec3 inner;
+uniform vec3 outer;
+
+uniform float threshold;
+uniform float radius;
+uniform float stretch;
+uniform float angle;
+
+uniform float stochastic;
+
+void main() {
+    vec4 texel = sample_texel( vUv );
+
+    vec2 spread = remap_float( radius, 0.0, 24.0 ) * 0.01 / get_texel_round();
+    float count_inverse = 1.0 / float( fetches );
+
+    float cut = clamp( threshold, 0.0, 1.0 );
+    float room = max( 1.0 - cut, c_epsilon );
+
+    float lean = remap_signed( stretch, 1.0 );
+    vec2 shape = vec2( 1.0 - max( -lean, 0.0 ) * 0.92, 1.0 - max( lean, 0.0 ) * 0.92 );
+
+    float turn = radians( angle );
+    float cosine = cos( turn );
+    float sine = sin( turn );
+
+    vec3 glow = vec3( 0.0 );
+    float weight_total = 0.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        vec2 offset = get_vogel_scatter( it, count_inverse, stochastic );
+        float along = dot( offset, offset );
+
+        vec2 shaped = offset * shape;
+        vec2 thrown = vec2( shaped.x * cosine - shaped.y * sine,
+            shaped.x * sine + shaped.y * cosine );
+
+        vec4 found = sample_texel( vUv + thrown * spread );
+        float peak = max( found.x, max( found.y, found.z ) );
+        float bright = max( peak - cut, 0.0 ) / room;
+
+        float weight = exp( -along * 40.0 ) * 0.5
+            + exp( -along * 8.0 ) * 0.35
+            + exp( -along * 1.5 ) * 0.15;
+
+        glow += found.xyz * bright * weight * mix( inner, outer, sqrt( along ) );
+        weight_total += weight;
+    }
+
+    glow *= remap_float( force, 0.0, 6.0 ) / max( weight_total, c_epsilon );
+
+    gl_FragColor = vec4( texel.xyz + glow,
+        clamp( texel.w + max( glow.x, max( glow.y, glow.z ) ), 0.0, 1.0 ) );
+}

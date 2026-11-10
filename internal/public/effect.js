@@ -16,12 +16,11 @@ extension.effect = {
     precision: "precision highp float;",
 
     variants: {
-        number: 0,
-        vec2: 1,
-        vec3: 2,
-        vec4: 3,
-        color: 4,
-        image: 8
+        float: 0,
+        float2: 1,
+        float3: 2,
+        float4: 3,
+        float_pipette: 4
     },
 
     component_names: [ "x", "y", "z", "w" ],
@@ -101,19 +100,6 @@ extension.effect = {
 
         const named = piece.match( /^(?:const\s+)?\w+\s+(\w+)\s*[=(]/ );
         return named? named[ 1 ]: "";
-    },
-
-    unfold( source, taken ) {
-        return source.replace( /^[ \t]*#include[ \t]+"([^"]+)"[ \t]*\r?\n?/gm,
-            function ( whole, name ) {
-                if( taken.indexOf( name ) !== -1 ) return "";
-                taken.push( name );
-
-                const found = extension.effect.sources[ name ];
-                if( found === undefined ) return "";
-
-                return extension.effect.unfold( found, taken ) + "\n";
-            } );
     },
 
     read_macros( source ) {
@@ -223,7 +209,7 @@ extension.effect = {
 
     loop_bounds( shader, controls ) {
         return ( controls || [] ).filter( function ( control ) {
-            return !control.fixed && control.far !== undefined
+            return !control.constant && control.far !== undefined
                 && shader.indexOf( "c_" + control.name + "_max" ) !== -1;
         } ).map( function ( control ) {
             return "const int c_" + control.name + "_max = "
@@ -245,8 +231,7 @@ extension.effect = {
     },
 
     preprocess( effect ) {
-        const source = extension.effect.sources[ effect.internal ] || "";
-        const shader = extension.effect.unfold( source, [] );
+        const shader = extension.effect.sources[ effect.internal ] || "";
 
         const lines = shader.split( "\n" );
         let head = 0;
@@ -297,18 +282,7 @@ extension.effect = {
         return entry;
     },
 
-    build_image( control ) {
-        const entry = extension.effect.build_entry( control, 8, false );
-
-        entry.type.assetType = 0;
-        entry.type.accept = "image/*";
-        entry.type.value = null;
-        entry.value = null;
-
-        return entry;
-    },
-
-    build_static( control ) {
+    build_constant( control ) {
         const entry = extension.effect.build_entry( control, 0, false );
 
         entry.type.value = control.any;
@@ -358,8 +332,7 @@ extension.effect = {
     build_control( control ) {
         const variant = extension.effect.variants[ control.variant ];
 
-        if( variant === ( 8 ) ) return extension.effect.build_image( control );
-        if( control.fixed ) return extension.effect.build_static( control );
+        if( control.constant ) return extension.effect.build_constant( control );
         if( variant === ( 0 ) ) return extension.effect.build_number( control );
 
         return extension.effect.build_group( control, variant );

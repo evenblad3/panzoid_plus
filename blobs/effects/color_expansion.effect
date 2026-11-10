@@ -1,17 +1,18 @@
 uniform float force;
+
 uniform vec3 tint;
 uniform float protect;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    float grey = luma( texel.xyz );
+    float grey = get_luma( texel.xyz );
     vec3 apart = texel.xyz - grey;
 
     float knee = 1.0 - clamp( protect, 0.0, 1.0 )
         * smoothstep( 0.0, 0.6, length( apart ) );
 
-    vec3 made = grey + apart * ( 1.0 + remap( force, 0.0, 3.0 ) * knee );
+    vec3 made = grey + apart * ( 1.0 + remap_float( force, 0.0, 3.0 ) * knee );
 
     gl_FragColor = vec4( clamp( made, 0.0, 1.0 ) * tint, texel.w );
 }

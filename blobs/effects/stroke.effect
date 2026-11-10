@@ -1,31 +1,52 @@
-uniform float force;
 uniform vec3 tint;
+uniform vec3 edge;
+
 uniform float thickness;
-uniform float feather;
-uniform float stochastic;
+uniform float split;
+
+const int c_rays = 24;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    vec2 spread = remap( thickness, 0.0, 8.0 ) * 0.01 * round_offset();
-    float count_inverse = 1.0 / float( fetches );
+    vec2 reach = remap_float( thickness, 0.0, 8.0 ) * 0.01 / get_texel_round();
+
+    const int c_steps = fetches / c_rays;
+
+    float step_inverse = 1.0 / float( c_steps );
+    float wedge = c_pi2 / float( c_rays );
 
     float nearest = 1.0;
 
-    for( int it = 0; it < int( fetches ); ++it ) {
-        vec2 offset = vogel_scatter( it, count_inverse, stochastic );
+    for( int ray = 0; ray < c_rays; ++ray ) {
+        float turn = ( float( ray ) + 0.5 ) * wedge;
+        vec2 way = vec2( cos( turn ), sin( turn ) );
 
-        if( sample_it( vUv + offset * spread ).w > 0.5 ) {
-            nearest = min( nearest, length( offset ) );
+        float behind = texel.w;
+
+        for( int along_it = 1; along_it <= c_steps; ++along_it ) {
+            float along = float( along_it ) * step_inverse;
+            float found = sample_texel( vUv + way * along * reach ).w;
+
+            if( behind < 0.5 && found >= 0.5 ) {
+                float part = ( 0.5 - behind ) / max( found - behind, c_epsilon );
+
+                nearest = min( nearest, along - ( 1.0 - part ) * step_inverse );
+                break;
+            }
+
+            behind = found;
         }
     }
 
-    float soft = max( clamp( feather, 0.0, 1.0 ), c_epsilon );
-    float ink = smoothstep( 1.0, 1.0 - soft, nearest )
-        * ( 1.0 - texel.w ) * clamp( force, 0.0, 1.0 );
+    float inside = clamp( split, 0.0, 1.0 );
+
+    vec3 paint = mix( tint, edge,
+        smoothstep( inside - step_inverse, inside + step_inverse, nearest ) );
+    float ink = ( 1.0 - smoothstep( 1.0 - step_inverse, 1.0, nearest ) ) * ( 1.0 - texel.w );
 
     float alpha = texel.w + ink;
 
     gl_FragColor = ( alpha > 0.0 )?
-        vec4( ( texel.xyz * texel.w + tint * ink ) / alpha, alpha ): texel;
+        vec4( ( texel.xyz * texel.w + paint * ink ) / alpha, alpha ): texel;
 }

@@ -1,30 +1,35 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform float angle;
 uniform float shift;
 uniform float feather;
+
 uniform float grain;
 uniform float stochastic;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    vec2 round_uv = round_offset();
-    vec2 spread = remap( feather, 0.0, 0.25 ) * round_uv;
+    vec2 round_uv = get_texel_round();
+    vec2 spread = remap_float( feather, 0.0, 0.25 ) / round_uv;
 
     float turn = radians( angle );
-    vec2 at = vUv - vec2( cos( turn ), -sin( turn ) ) * remap( shift, 0.0, 0.25 ) * round_uv;
+    vec2 at = vUv - vec2( cos( turn ), -sin( turn ) )
+        * remap_float( shift, 0.0, 0.25 ) / round_uv;
 
     float count_inverse = 1.0 / float( fetches );
     float outside = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        outside += 1.0
-            - sample_it( at + vogel_scatter( it, count_inverse, stochastic ) * spread ).w;
+        outside += 1.0 - sample_texel(
+            at + get_vogel_scatter( it, count_inverse, stochastic ) * spread
+        ).w;
     }
 
-    float shade = clamp( outside * count_inverse * remap( force, 0.0, 2.0 ), 0.0, 1.0 );
-    shade = clamp( shade * ( 1.0 + scatter( grain ) ), 0.0, 1.0 ) * texel.w;
+    float shade = clamp( outside * count_inverse * remap_float( force, 0.0, 2.0 ), 0.0, 1.0 );
+    shade = clamp( shade * ( 1.0 + get_stochastic_scatter( grain ) ), 0.0, 1.0 ) * texel.w;
 
     gl_FragColor = vec4( mix( texel.xyz, tint, shade ), texel.w );
 }

@@ -1,521 +1,731 @@
 [
     {
         "serial": "antialiasing_plus",
+
         "name": "Antialiasing+",
-        "description": "todo description",
+        "description": "Smooths the jagged steps on slanted edges. Put it last in the stack when text and thin shapes come out rough.",
+
         "tab": "blur",
         "internal": "antialiasing_plus.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"threshold","variant":"number","any":0.3,"near":0,"far":1},
-            {"name":"sharpness","variant":"number","any":0.75,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":20,"near":4,"far":48,"fixed":true}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "blur_bokeh",
+
         "name": "Blur Bokeh",
-        "description": "todo description",
+        "description": "Puts the layer out of focus the way a real lens does, so bright spots turn into round circles. For a background that should stay behind the subject.",
+
         "tab": "blur",
         "internal": "blur_bokeh.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.03125,"near":0,"far":1},
-            {"name":"highlight","variant":"number","any":0.142857,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":512,"near":8,"far":512,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.031, "near": 0.0, "far": 1.0 },
+
+            { "name": "highlight", "variant": "float", "any": 0.143, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 512.0, "near": 8.0, "far": 948.0, "constant": true }
         ]
     },
     {
         "serial": "blur_directional_plus",
+
         "name": "Blur Directional+",
-        "description": "todo description",
+        "description": "Blurs the layer in one direction, like a camera that moved while the shot was taken. Makes a still picture look like it is moving fast.",
+
         "tab": "blur",
         "internal": "blur_directional_plus.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"direction","variant":"vec2","any":[0.5,0.75],"near":0,"far":1},
-            {"name":"highlight","variant":"number","any":0.473684,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":4,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+
+            { "name": "highlight", "variant": "float", "any": 0.474, "near": 0.0, "far": 1.0 },
+
+            { "name": "direction", "variant": "float2", "any": [ 0.5, 0.75 ], "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "blur_edge",
+
         "name": "Blur Edge",
-        "description": "todo description",
+        "description": "Keeps the middle sharp and blurs more and more toward the edge of the frame. Points the eye at the centre without darkening the corners.",
+
         "tab": "blur",
         "internal": "blur_edge.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"size","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"highlight","variant":"number","any":0.473684,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":256,"near":8,"far":256,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+
+            { "name": "highlight", "variant": "float", "any": 0.474, "near": 0.0, "far": 1.0 },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 256.0, "near": 8.0, "far": 512.0, "constant": true }
         ]
     },
     {
         "serial": "blur_radial_plus",
+
         "name": "Blur Radial+",
-        "description": "todo description",
+        "description": "Blurs the image outward from a point, like a zoom caught halfway. Makes a still reveal feel faster.",
+
         "tab": "blur",
         "internal": "blur_radial_plus.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.4,"near":0,"far":1},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"highlight","variant":"number","any":0.473684,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.4, "near": 0.0, "far": 1.0 },
+
+            { "name": "highlight", "variant": "float", "any": 0.474, "near": 0.0, "far": 1.0 },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "blur_vector",
+
         "name": "Blur Vector",
-        "description": "todo description",
+        "description": "Blurs along the shapes in the picture instead of across them, so edges stretch like brushed metal. Gives a flat render a sense of movement.",
+
         "tab": "blur",
         "internal": "blur_vector.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.13,"near":0,"far":1},
-            {"name":"angle","variant":"number","any":0,"near":0,"far":360},
-            {"name":"ridge","variant":"number","any":1,"near":0,"far":1},
-            {"name":"radius","variant":"number","any":0.222222,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":4,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.13, "near": 0.0, "far": 1.0 },
+
+            { "name": "radius", "variant": "float", "any": 0.222, "near": 0.0, "far": 1.0 },
+            { "name": "angle", "variant": "float", "any": 0.0, "near": 0.0, "far": 360.0 },
+            { "name": "ridge", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 4.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "median",
+
         "name": "Median",
-        "description": "todo description",
+        "description": "Removes speckles and compression dirt but keeps edges hard. For noisy video and gradients, where a blur would only spread the mess around.",
+
         "tab": "blur",
         "internal": "median.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"radius","variant":"number","any":0.126984,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":25,"near":9,"far":64,"fixed":true}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "radius", "variant": "float", "any": 0.127, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 32.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "oil_paint",
+
         "name": "Oil Paint",
-        "description": "todo description",
+        "description": "Rebuilds the picture out of flat brush strokes that follow its own shapes. Makes a render or a photo look painted by hand.",
+
         "tab": "blur",
         "internal": "oil_paint.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.428571,"near":0,"far":1},
-            {"name":"sharpness","variant":"number","any":0.461538,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":49,"near":9,"far":65,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.429, "near": 0.0, "far": 1.0 },
+
+            { "name": "sharpness", "variant": "float", "any": 0.462, "near": 0.0, "far": 1.0 },
+
+            { "name": "fetches", "variant": "float", "any": 49.0, "near": 9.0, "far": 65.0, "constant": true }
         ]
     },
     {
         "serial": "blur_channel",
+
         "name": "Blur Channel",
-        "description": "todo description",
+        "description": "Blurs red, green and blue by different amounts. Softens the colour but keeps the detail the eye reads from brightness.",
+
         "tab": "blur",
         "internal": "blur_channel.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.1,"near":0,"far":1},
-            {"name":"red","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"green","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"blue","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":8,"far":256,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.1, "near": 0.0, "far": 1.0 },
+
+            { "name": "red", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "green", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "blue", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "tint",
+
         "name": "Tint",
-        "description": "todo description",
+        "description": "Pulls the whole layer toward one colour, and can make it lighter or darker at the same time. The fastest way to match footage to the colours of the rest of the intro.",
+
         "tab": "color",
         "internal": "tint.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "exposure", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "contrast", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "color_expansion",
+
         "name": "Color Expansion",
-        "description": "todo description",
+        "description": "Pushes weak colours away from grey and leaves the strong ones alone. Brings back washed-out footage without making skin look wrong.",
+
         "tab": "color",
         "internal": "color_expansion.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"protect","variant":"number","any":0.5,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 0.1, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "protect", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "leave_color",
+
         "name": "Leave Color",
-        "description": "todo description",
+        "description": "Takes the colour you pick out of the picture and leaves everything else. The classic shot where one coat stays red and the street turns grey.",
+
         "tab": "color",
         "internal": "leave_color.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"protect","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.2,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "protect", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+
+            { "name": "feather", "variant": "float", "any": 0.2, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "invert_channel",
+
         "name": "Invert Channel",
-        "description": "todo description",
+        "description": "Flips the colours that sit close to the one you pick. Makes a negative out of part of the frame instead of all of it.",
+
         "tab": "color",
         "internal": "invert_channel.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] }
         ]
     },
     {
         "serial": "chromatic_aberration",
+
         "name": "Chromatic Aberration",
-        "description": "todo description",
+        "description": "Splits red, green and blue apart the way cheap glass does. Makes a clean render look like it was filmed with a real camera.",
+
         "tab": "color",
         "internal": "chromatic_aberration.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.125,"near":0,"far":1},
-            {"name":"angle","variant":"number","any":0,"near":0,"far":360},
-            {"name":"red","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"green","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"blue","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":64,"near":3,"far":64,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.125, "near": 0.0, "far": 1.0 },
+
+            { "name": "red", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+            { "name": "green", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "blue", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+
+            { "name": "angle", "variant": "float", "any": 0.0, "near": 0.0, "far": 360.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 64.0, "near": 3.0, "far": 128.0, "constant": true }
         ]
     },
     {
         "serial": "colorisma",
+
         "name": "Colorisma",
-        "description": "todo description",
+        "description": "Bends the shadows, the midtones and the highlights with one handle each. A full colour grade without leaving Clipmaker.",
+
         "tab": "color",
         "internal": "colorisma.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"low","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"mid","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"high","variant":"number","any":0.75,"near":0,"far":1},
-            {"name":"saturation","variant":"number","any":0.5,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "saturation", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+
+            { "name": "low", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+            { "name": "mid", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "high", "variant": "float", "any": 0.75, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "warp_waves",
+
         "name": "Warp Waves",
-        "description": "todo description",
+        "description": "Rolls the layer in soft waves. For water, heat in the air, or a flag that never stops moving.",
+
         "tab": "distort",
         "internal": "warp_waves.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.2,"near":0,"far":1},
-            {"name":"twist","variant":"number","any":0.345455,"near":0,"far":1},
-            {"name":"time","variant":"number","any":0,"near":0}
+            { "name": "force", "variant": "float", "any": 0.2, "near": 0.0, "far": 1.0 },
+
+            { "name": "twist", "variant": "float", "any": 0.345, "near": 0.0, "far": 1.0 },
+
+            { "name": "time", "variant": "float", "any": 0.0, "near": 0.0 }
         ]
     },
     {
         "serial": "turbulent_displace",
+
         "name": "Turbulent Displace",
-        "description": "todo description",
+        "description": "Pushes the picture around with layered noise, so it churns instead of sliding. For smoke, ink in water, or text that melts as it leaves.",
+
         "tab": "distort",
         "internal": "turbulent_displace.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.125,"near":0,"far":1},
-            {"name":"size","variant":"number","any":0.246231,"near":0,"far":1},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"complexity","variant":"number","any":3,"near":1,"far":8},
-            {"name":"time","variant":"number","any":0,"near":0},
-            {"name":"smoother","variant":"number","any":0,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 0.32, "near": 0.0, "far": 1.0 },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float", "any": 0.16, "near": 0.0, "far": 1.0 },
+            { "name": "smoother", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+            { "name": "complexity", "variant": "float", "any": 3.0, "near": 1.0, "far": 8.0 },
+
+            { "name": "time", "variant": "float", "any": 0.0, "near": 0.0 }
         ]
     },
     {
         "serial": "mirror_plus",
+
         "name": "Mirror+",
-        "description": "todo description",
+        "description": "Folds the frame into a kaleidoscope around a point you choose. Builds a symmetric background out of footage that had no symmetry in it.",
+
         "tab": "distort",
         "internal": "mirror_plus.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"segments","variant":"number","any":6,"near":1,"far":16},
-            {"name":"rotation","variant":"number","any":0,"near":0,"far":360},
-            {"name":"twist","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"scale","variant":"vec2","any":[0.183673,0.183673],"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float2", "any": [ 0.184, 0.184 ], "near": 0.0, "far": 1.0 },
+            { "name": "rotation", "variant": "float", "any": 0.0, "near": 0.0, "far": 360.0 },
+
+            { "name": "segments", "variant": "float", "any": 6.0, "near": 1.0, "far": 16.0 },
+            { "name": "twist", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "griddler",
+
         "name": "Griddler",
-        "description": "todo description",
+        "description": "Cuts the frame into cells and turns and stretches each one on its own. Breaks a clean layer into pieces on purpose.",
+
         "tab": "distort",
         "internal": "griddler.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"stretch","variant":"vec4","any":[0.230769,0.230769,0.230769,0.230769],"near":0,"far":1},
-            {"name":"scale","variant":"number","any":0.090909,"near":0,"far":1},
-            {"name":"rotation","variant":"vec2","any":[0,0],"near":0,"far":360}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "rotation", "variant": "float2", "any": [ 0.0, 0.0 ], "near": 0.0, "far": 360.0 },
+            { "name": "scale", "variant": "float", "any": 0.091, "near": 0.0, "far": 1.0 },
+            { "name": "stretch", "variant": "float4", "any": [ 0.231, 0.231, 0.231, 0.231 ], "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "checkerboard",
+
         "name": "Checkerboard",
-        "description": "todo description",
+        "description": "Draws a checker pattern over the layer. A background, or a shape for a transition, that needs no image behind it.",
+
         "tab": "generate",
         "internal": "checkerboard.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"size","variant":"vec2","any":[0.096386,0.096386],"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float2", "any": [ 0.096, 0.096 ], "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.05, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "grid",
+
         "name": "Grid",
-        "description": "todo description",
+        "description": "Draws a grid of lines over the layer. For blueprint backgrounds, HUD panels, and anything that needs structure behind it.",
+
         "tab": "generate",
         "internal": "grid.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"size","variant":"vec2","any":[0.156627,0.156627],"near":0,"far":1},
-            {"name":"thickness","variant":"number","any":0.030303,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.04,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float2", "any": [ 0.157, 0.157 ], "near": 0.0, "far": 1.0 },
+            { "name": "thickness", "variant": "float", "any": 0.03, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.04, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "venetian_blinds",
+
         "name": "Venetian Blinds",
-        "description": "todo description",
+        "description": "Cuts the layer into slats that you can turn and open. The transition every 2D intro uses, and it costs one effect instead of twenty keyframed shapes.",
+
         "tab": "generate",
         "internal": "venetian_blinds.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"thickness","variant":"number","any":0.018036,"near":0,"far":1},
-            {"name":"angle","variant":"number","any":0,"near":0,"far":360},
-            {"name":"margin","variant":"number","any":0.555556,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "angle", "variant": "float", "any": 0.0, "near": 0.0, "far": 360.0 },
+            { "name": "thickness", "variant": "float", "any": 0.018, "near": 0.0, "far": 1.0 },
+            { "name": "margin", "variant": "float", "any": 0.556, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.05, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "stroke",
+
         "name": "Stroke",
-        "description": "todo description",
+        "description": "Draws an outline around everything solid in the layer, in up to two bands, so a shape can carry a dark line inside a bright one. Keeps text readable on a busy background.",
+
         "tab": "generate",
         "internal": "stroke.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"thickness","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.2,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":256,"near":8,"far":512,"fixed":true}
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "edge", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "thickness", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+            { "name": "split", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "fetches", "variant": "float", "any": 384.0, "near": 96.0, "far": 768.0, "constant": true }
         ]
     },
     {
         "serial": "light_sweep",
+
         "name": "Light Sweep",
-        "description": "todo description",
+        "description": "Runs a band of light across the layer. The shine that makes metal text read as metal.",
+
         "tab": "generate",
         "internal": "light_sweep.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.166667,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"thickness","variant":"number","any":0.083333,"near":0,"far":1},
-            {"name":"angle","variant":"number","any":110,"near":0,"far":360},
-            {"name":"feather","variant":"number","any":0.2,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 0.167, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "angle", "variant": "float", "any": 110.0, "near": 0.0, "far": 360.0 },
+            { "name": "thickness", "variant": "float", "any": 0.083, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.2, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "blocks",
+
         "name": "Blocks",
-        "description": "todo description",
+        "description": "Takes the layer away in random squares. A transition with a digital edge instead of a soft fade.",
+
         "tab": "generate",
         "internal": "blocks.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"scale","variant":"number","any":0.12,"near":0,"far":1},
-            {"name":"position","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.05,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "position", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float", "any": 0.12, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.05, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "shadow_drop",
+
         "name": "Shadow Drop",
-        "description": "todo description",
+        "description": "Puts a soft shadow behind the layer. Separates text from the background without adding an outline.",
+
         "tab": "perspective",
         "internal": "shadow_drop.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"angle","variant":"number","any":135,"near":0,"far":360},
-            {"name":"shift","variant":"number","any":0.04,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.08,"near":0,"far":1},
-            {"name":"grain","variant":"number","any":0,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "angle", "variant": "float", "any": 135.0, "near": 0.0, "far": 360.0 },
+            { "name": "shift", "variant": "float", "any": 0.04, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.08, "near": 0.0, "far": 1.0 },
+
+            { "name": "grain", "variant": "float", "any": 0.0, "near": 0.0, "far": 1.0 },
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "shadow_inner",
+
         "name": "Shadow Inner",
-        "description": "todo description",
+        "description": "Sinks a shadow inside the edges of the layer, so the shape reads as cut into the surface instead of sitting on top of it.",
+
         "tab": "perspective",
         "internal": "shadow_inner.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"angle","variant":"number","any":135,"near":0,"far":360},
-            {"name":"shift","variant":"number","any":0.04,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.06,"near":0,"far":1},
-            {"name":"grain","variant":"number","any":0,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "angle", "variant": "float", "any": 135.0, "near": 0.0, "far": 360.0 },
+            { "name": "shift", "variant": "float", "any": 0.04, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.06, "near": 0.0, "far": 1.0 },
+
+            { "name": "grain", "variant": "float", "any": 0.0, "near": 0.0, "far": 1.0 },
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "satin",
+
         "name": "Satin",
-        "description": "todo description",
+        "description": "Lays a soft sheen inside the shape that follows its own outline. Gives flat text a cloth or chrome feel.",
+
         "tab": "perspective",
         "internal": "satin.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.333333,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"shift","variant":"number","any":0.08,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.08,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.333, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "shift", "variant": "float", "any": 0.08, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.08, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "ambient_occlusion",
+
         "name": "Ambient Occlusion",
-        "description": "todo description",
+        "description": "Darkens the folds and corners where light would not reach. Puts depth back into flat 3D that renders too evenly.",
+
         "tab": "perspective",
         "internal": "ambient_occlusion.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.25,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"radius","variant":"number","any":0.333333,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":8,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "radius", "variant": "float", "any": 0.333, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 8.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "extrude",
+
         "name": "Extrude",
-        "description": "todo description",
+        "description": "Pushes the layer back along an angle so it reads as a solid block. The cheap and convincing 3D look for flat text.",
+
         "tab": "perspective",
         "internal": "extrude.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"angle","variant":"number","any":135,"near":0,"far":360},
-            {"name":"caps","variant":"vec2","any":[0.15,0.2],"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":256,"near":16,"far":256,"fixed":true}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "angle", "variant": "float", "any": 135.0, "near": 0.0, "far": 360.0 },
+            { "name": "caps", "variant": "float2", "any": [ 0.15, 0.2 ], "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 256.0, "near": 16.0, "far": 512.0, "constant": true }
         ]
     },
     {
         "serial": "toon",
+
         "name": "Toon",
-        "description": "todo description",
+        "description": "Cuts the shading down to a few flat steps. The cel animation look, with nothing to draw.",
+
         "tab": "stylize",
         "internal": "toon.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"saturation","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"posterize","variant":"number","any":0.142857,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.1,"near":0,"far":1},
-            {"name":"exposure","variant":"number","any":0.285714,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "saturation", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "posterize", "variant": "float", "any": 0.143, "near": 0.0, "far": 1.0 },
+            { "name": "exposure", "variant": "float", "any": 0.286, "near": 0.0, "far": 1.0 },
+
+            { "name": "feather", "variant": "float", "any": 0.1, "near": 0.0, "far": 1.0 }
+        ]
+    },
+    {
+        "serial": "glow",
+
+        "name": "Glow",
+        "description": "Bleeds light out of the bright parts of the layer. Round it is a lens bloom, stretched it is an anamorphic streak, and the colour runs from inner at the source to outer as it spreads.",
+
+        "tab": "stylize",
+        "internal": "glow.effect",
+
+        "controls": [
+            { "name": "force", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+
+            { "name": "inner", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "outer", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "threshold", "variant": "float", "any": 0.4, "near": 0.0, "far": 1.0 },
+            { "name": "radius", "variant": "float", "any": 0.35, "near": 0.0, "far": 1.0 },
+            { "name": "stretch", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "angle", "variant": "float", "any": 0.0, "near": 0.0, "far": 360.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 512.0, "near": 8.0, "far": 948.0, "constant": true }
         ]
     },
     {
         "serial": "dither",
+
         "name": "Dither",
-        "description": "todo description",
+        "description": "Cuts the picture down to a few colours and hides the banding behind a regular pattern. For retro console and old computer looks.",
+
         "tab": "stylize",
         "internal": "dither.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"posterize","variant":"number","any":0.6,"near":0,"far":1},
-            {"name":"scale","variant":"number","any":0,"near":0,"far":1},
-            {"name":"saturation","variant":"number","any":0.5,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "saturation", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "posterize", "variant": "float", "any": 0.6, "near": 0.0, "far": 1.0 },
+
+            { "name": "scale", "variant": "float", "any": 0.0, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "ascii",
+
         "name": "Ascii",
-        "description": "todo description",
+        "description": "Rebuilds the picture out of hex characters on a terminal grid. For hacker screens, code rain, and anything that should look like it came off a console.",
+
         "tab": "stylize",
         "internal": "ascii.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"scale","variant":"number","any":0.2,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "scale", "variant": "float", "any": 0.2, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "halftone",
+
         "name": "Halftone",
-        "description": "todo description",
+        "description": "Rebuilds the picture out of dots that grow with brightness. For print, comic and risograph looks.",
+
         "tab": "stylize",
         "internal": "halftone.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.866667,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"scale","variant":"number","any":0.240506,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.1,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 0.867, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "scale", "variant": "float", "any": 0.241, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.1, "near": 0.0, "far": 1.0 }
         ]
     },
     {
         "serial": "cartoon",
+
         "name": "Cartoon",
-        "description": "todo description",
+        "description": "Finds the edges in the layer and inks them. Outlines a render the way a comic panel would.",
+
         "tab": "stylize",
         "internal": "cartoon.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.7,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"thickness","variant":"number","any":0.096774,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.292929,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":64,"near":4,"far":64,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.7, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "thickness", "variant": "float", "any": 0.097, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.293, "near": 0.0, "far": 1.0 },
+
+            { "name": "fetches", "variant": "float", "any": 64.0, "near": 4.0, "far": 128.0, "constant": true }
         ]
     },
     {
         "serial": "ghost",
+
         "name": "Ghost",
-        "description": "todo description",
+        "description": "Lays a faded, smaller copy of the layer over itself. For echoes, afterimages and doubles.",
+
         "tab": "stylize",
         "internal": "ghost.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":0.6,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"shrink","variant":"number","any":0.736842,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.04,"near":0,"far":1},
-            {"name":"stochastic","variant":"number","any":0.5,"near":0,"far":1},
-            {"name":"fetches","variant":"number","any":128,"near":1,"far":128,"fixed":true}
+            { "name": "force", "variant": "float", "any": 0.6, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "shrink", "variant": "float", "any": 0.737, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.04, "near": 0.0, "far": 1.0 },
+
+            { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "fetches", "variant": "float", "any": 128.0, "near": 1.0, "far": 256.0, "constant": true }
         ]
     },
     {
         "serial": "vignette",
+
         "name": "Vignette",
-        "description": "todo description",
+        "description": "Darkens the frame toward the corners. Holds the eye in the middle of the shot instead of letting it wander to the edges.",
+
         "tab": "stylize",
         "internal": "vignette.effect",
+
         "controls": [
-            {"name":"force","variant":"number","any":1,"near":0,"far":1},
-            {"name":"tint","variant":"color","any":[1,1,1]},
-            {"name":"position","variant":"vec2","any":[0.5,0.5],"near":0,"far":1},
-            {"name":"size","variant":"number","any":0.310345,"near":0,"far":1},
-            {"name":"feather","variant":"number","any":0.246231,"near":0,"far":1}
+            { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+
+            { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float", "any": 0.31, "near": 0.0, "far": 1.0 },
+            { "name": "feather", "variant": "float", "any": 0.246, "near": 0.0, "far": 1.0 }
         ]
     }
 ]

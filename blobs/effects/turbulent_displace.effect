@@ -1,22 +1,25 @@
 uniform float force;
-uniform float size;
-uniform vec2 position;
-uniform float complexity;
-uniform float time;
-uniform float smoother;
 
-float wave( vec2 it ) {
-    vec2 cell = floor( it );
-    vec2 inside = fract( it );
+uniform vec2 position;
+uniform float scale;
+uniform float smoother;
+uniform float complexity;
+
+uniform float time;
+
+float get_wave( vec2 texel ) {
+    vec2 cell = floor( texel );
+    vec2 inside = fract( texel );
     vec2 fade = inside * inside * ( 3.0 - 2.0 * inside );
 
     return mix(
-        mix( hash_pair( cell ).x, hash_pair( cell + vec2( 1.0, 0.0 ) ).x, fade.x ),
-        mix( hash_pair( cell + vec2( 0.0, 1.0 ) ).x, hash_pair( cell + 1.0 ).x, fade.x ),
-        fade.y );
+        mix( get_hash( cell ).x, get_hash( cell + vec2( 1.0, 0.0 ) ).x, fade.x ),
+        mix( get_hash( cell + vec2( 0.0, 1.0 ) ).x, get_hash( cell + 1.0 ).x, fade.x ),
+        fade.y
+    );
 }
 
-float fractal( vec2 spot ) {
+float get_fractal( vec2 spot ) {
     float total = 0.0;
     float weight = 0.5;
     float reach = 1.0;
@@ -25,7 +28,7 @@ float fractal( vec2 spot ) {
     for( int it = 0; it < c_complexity_max; ++it ) {
         if( float( it ) >= complexity ) break;
 
-        float one = wave( spot * reach ) * 2.0 - 1.0;
+        float one = get_wave( spot * reach ) * 2.0 - 1.0;
         total += mix( abs( one ), one, clamp( smoother, 0.0, 1.0 ) ) * weight;
 
         weight_total += weight;
@@ -37,13 +40,13 @@ float fractal( vec2 spot ) {
 }
 
 void main() {
-    vec2 round_uv = round_coordinate();
+    vec2 round_uv = get_texel_round();
 
-    vec2 spot = vUv * round_uv * ( 100.0 / max( remap( size, 2.0, 400.0 ), 1.0 ) )
-        + remap( position, -10.0, 10.0 ) + time;
+    vec2 spot = vUv * round_uv * ( 100.0 / max( remap_float( scale, 2.0, 400.0 ), 1.0 ) )
+        + remap_signed( position, 10.0 ) + time;
 
-    vec2 push = vec2( fractal( spot ), fractal( spot + vec2( 37.4, 11.7 ) ) );
-    vec2 at = vUv + push * remap( force, 0.0, 400.0 ) * 0.002 / round_uv;
+    vec2 push = vec2( get_fractal( spot ), get_fractal( spot + vec2( 37.4, 11.7 ) ) );
+    vec2 at = vUv + push * remap_float( force, 0.0, 400.0 ) * 0.002 / round_uv;
 
-    gl_FragColor = sample_it( 1.0 - abs( mod( at, 2.0 ) - 1.0 ) );
+    gl_FragColor = sample_texel( 1.0 - abs( mod( at, 2.0 ) - 1.0 ) );
 }

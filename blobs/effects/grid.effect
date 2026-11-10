@@ -1,21 +1,22 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform vec2 position;
-uniform vec2 size;
+uniform vec2 scale;
 uniform float thickness;
 uniform float feather;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    vec2 round_uv = round_coordinate();
-    vec2 cell = max( remap( size, 0.002, 0.5 ), vec2( c_epsilon ) );
+    vec2 cell = max( remap_float( scale, 0.002, 0.5 ), vec2( c_epsilon ) );
+    vec2 inside = abs(
+        fract( ( vUv - remap_float( position, -1.0, 2.0 ) ) * get_texel_round() / cell ) - 0.5
+    ) * cell;
 
-    vec2 inside = abs( fract( ( vUv - remap( position, -1.0, 2.0 ) ) * round_uv / cell ) - 0.5 )
-        * cell;
-
-    float reach = remap( thickness, 0.001, 0.1 ) * 0.5;
-    float edge = max( remap( feather, 0.0, 0.05 ), c_epsilon ) * 0.5;
+    float reach = remap_float( thickness, 0.001, 0.1 ) * 0.5;
+    float edge = max( remap_float( feather, 0.0, 0.05 ), c_epsilon ) * 0.5;
 
     vec2 line = smoothstep( reach + edge, reach - edge, inside );
     float ink = max( line.x, line.y ) * clamp( force, 0.0, 1.0 );

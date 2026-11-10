@@ -1,29 +1,29 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform float thickness;
 uniform float feather;
 
-const float c_edge_floor = 0.12;
-
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    float here = luma( texel.xyz );
-    vec2 spread = remap( thickness, 0.25, 8.0 ) * 0.002 * round_offset();
+    float here = get_luma( texel.xyz );
+    vec2 spread = remap_float( thickness, 0.25, 8.0 ) * 0.002 / get_texel_round();
 
-    float turn = c_turn / float( fetches );
+    float turn = c_pi2 / float( fetches );
     float apart = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
         float angle = float( it ) * turn;
-        vec4 beside = sample_it( vUv + vec2( cos( angle ), sin( angle ) ) * spread );
+        vec4 beside = sample_texel( vUv + vec2( cos( angle ), sin( angle ) ) * spread );
 
-        apart = max( apart, abs( luma( beside.xyz ) - here ) );
+        apart = max( apart, abs( get_luma( beside.xyz ) - here ) );
         apart = max( apart, abs( beside.w - texel.w ) );
     }
 
-    float edge = max( 1.0 - clamp( force, 0.0, 1.0 ), c_edge_floor );
-    float soft = max( remap( feather, 0.01, 1.0 ), c_epsilon ) * edge;
+    float edge = max( 1.0 - clamp( force, 0.0, 1.0 ), 0.12 );
+    float soft = max( remap_float( feather, 0.01, 1.0 ), c_epsilon ) * edge;
     float contour = smoothstep( edge - soft, edge + soft, apart );
 
     gl_FragColor = vec4( mix( texel.xyz, tint, contour ), max( texel.w, contour ) );

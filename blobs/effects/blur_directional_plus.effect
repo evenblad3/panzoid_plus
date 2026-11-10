@@ -1,11 +1,14 @@
 uniform float force;
-uniform vec2 direction;
+
 uniform float highlight;
+
+uniform vec2 direction;
+
 uniform float stochastic;
 
 void main() {
-    vec2 along = remap( direction, -1.0, 1.0 )
-        * remap( force, 0.0, 8.0 ) * 0.05 * round_offset();
+    vec2 along = remap_signed( direction, 1.0 )
+        * remap_float( force, 0.0, 8.0 ) * 0.05 / get_texel_round();
 
     float span_inverse = 1.0 / max( float( fetches ) - 1.0, 1.0 );
 
@@ -13,13 +16,13 @@ void main() {
     float weight_total = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        vec4 texel = sample_it( vUv + along
-            * ( ( float( it ) + scatter( stochastic ) ) * span_inverse - 0.5 ) );
-        float weight = pow( length( texel.xyz ), remap( highlight, 0.5, 4.0 ) );
+        vec4 texel = sample_texel( vUv + along
+            * ( ( float( it ) + get_stochastic_scatter( stochastic ) ) * span_inverse - 0.5 ) );
+        float weight = pow( length( texel.xyz ), remap_float( highlight, 0.5, 4.0 ) );
 
         total += texel * weight;
         weight_total += weight;
     }
 
-    gl_FragColor = ( weight_total > 0.0 )? total / weight_total: sample_it( vUv );
+    gl_FragColor = ( weight_total > 0.0 )? total / weight_total: sample_texel( vUv );
 }

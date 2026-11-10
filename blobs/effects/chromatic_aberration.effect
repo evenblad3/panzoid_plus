@@ -1,8 +1,11 @@
 uniform float force;
-uniform float angle;
+
 uniform float red;
 uniform float green;
 uniform float blue;
+
+uniform float angle;
+
 uniform float stochastic;
 
 void main() {
@@ -13,9 +16,9 @@ void main() {
     float sine = sin( turn );
 
     vec2 way = vec2( centered.x * cosine - centered.y * sine,
-        centered.x * sine + centered.y * cosine ) * remap( force, 0.0, 8.0 ) * 0.025;
+        centered.x * sine + centered.y * cosine ) * remap_float( force, 0.0, 8.0 ) * 0.025;
 
-    vec3 shift = remap( vec3( red, green, blue ), -1.0, 1.0 );
+    vec3 shift = remap_signed( vec3( red, green, blue ), 1.0 );
     float span_inverse = 1.0 / max( float( fetches ) - 1.0, 1.0 );
 
     vec3 total = vec3( 0.0 );
@@ -23,12 +26,12 @@ void main() {
     float alpha = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        float along = ( float( it ) + scatter( stochastic ) ) * span_inverse;
+        float along = ( float( it ) + get_stochastic_scatter( stochastic ) ) * span_inverse;
 
         float channel = ( along < 0.5 )? mix( shift.x, shift.y, along * 2.0 )
             : mix( shift.y, shift.z, along * 2.0 - 1.0 );
 
-        vec4 texel = sample_it( vUv + way * channel );
+        vec4 texel = sample_texel( vUv + way * channel );
 
         vec3 weight = vec3( smoothstep( 0.5, 0.0, along ),
             1.0 - abs( along * 2.0 - 1.0 ),

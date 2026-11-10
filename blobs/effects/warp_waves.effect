@@ -1,9 +1,11 @@
 uniform float force;
+
 uniform float twist;
+
 uniform float time;
 
 void main() {
-    vec2 wave = sin( vec2( vUv.y, vUv.x ) * remap( twist, 0.25, 3.0 ) + time );
+    vec2 wave = sin( vec2( vUv.y, vUv.x ) * remap_float( twist, 0.25, 3.0 ) + time );
 
-    gl_FragColor = sample_it( 1.0 - abs( mod( vUv + wave * force * 0.2, 2.0 ) - 1.0 ) );
+    gl_FragColor = sample_texel( 1.0 - abs( mod( vUv + wave * force * 0.2, 2.0 ) - 1.0 ) );
 }

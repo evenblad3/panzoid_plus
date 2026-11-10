@@ -1,158 +1,134 @@
 ( function () {
     "use strict";
 
-    const storage_key = "panzoid_plus.settings";
-    const marker = "panzoid+";
+    const config = {
+        storage_key: "panzoid_plus.settings",
+        marker: "panzoid+",
 
-    const waiting = new Map();
-    let next_serial = 1;
+        settings_wait: 2000,
+        transfer_wait: 2500
+    };
 
-    function remember( settings ) {
+    const page_answers = new Map();
+    let page_serial = 1;
+
+    function storage_remember( settings ) {
         try {
-            localStorage.setItem( storage_key, JSON.stringify( settings ) );
+            localStorage.setItem( config.storage_key, JSON.stringify( settings ) );
         } catch( error ) {}
     }
 
-    function ask_page( variant, payload, timeout ) {
+    function page_ask( variant, payload, wait ) {
         return new Promise( function ( resolve ) {
-            const serial = next_serial++;
+            const serial = page_serial++;
 
             const timer = setTimeout( function () {
-                waiting.delete( serial );
+                page_answers.delete( serial );
                 resolve( null );
-            }, timeout );
+            }, wait );
 
-            waiting.set( serial, function ( answer ) {
+            page_answers.set( serial, function ( answer ) {
                 clearTimeout( timer );
-                waiting.delete( serial );
+                page_answers.delete( serial );
                 resolve( answer );
             } );
 
             window.postMessage(
-                Object.assign( { extension: marker, variant, serial }, payload ), "*" );
+                Object.assign( { extension: config.marker, variant, serial }, payload ), "*" );
         } );
     }
 
-    function push( settings ) {
-        remember( settings );
-        return ask_page( "settings", { settings }, 2000 );
+    function settings_push( settings ) {
+        storage_remember( settings );
+        return page_ask( "settings", { settings }, config.settings_wait );
     }
 
-    function is_editor_frame() {
+    function frame_is_editor() {
         return Boolean( document.querySelector( "canvas" )
             || document.querySelector( ".editorpanel" )
             || document.querySelector( "#panecontainer" ) );
     }
 
-    function answer_delay() {
-        if( is_editor_frame() ) return 0;
-        return window.top === window? 400: 200;
-    }
-
-    function reply( respond, any ) {
-        const wait = answer_delay();
-
-        if( wait === 0 ) respond( any );
-        else setTimeout( function () { respond( any ); }, wait );
-    }
-
-    function read( path ) {
+    function blob_read( path ) {
         return fetch( chrome.runtime.getURL( path ) ).then( function ( answer ) {
             return answer.text();
         } );
     }
 
-    function send_catalogue() {
-        read( "blobs/effects.json" ).then( function ( text ) {
+    function catalogue_send() {
+        blob_read( "blobs/effects.json" ).then( function ( text ) {
             const catalogue = JSON.parse( text );
             const names = catalogue.map( function ( effect ) { return effect.internal; } );
 
-            const wanted = [ read( "blobs/library.effect" ) ].concat(
-                names.map( function ( name ) { return read( "blobs/effects/" + name ); } ) );
+            const wanted = [ blob_read( "blobs/library.effect" ) ].concat(
+                names.map( function ( name ) {
+                    return blob_read( "blobs/effects/" + name );
+                } ) );
 
             return Promise.all( wanted ).then( function ( texts ) {
                 const sources = {};
                 names.forEach( function ( name, it ) { sources[ name ] = texts[ it + 1 ]; } );
 
                 window.postMessage( {
-                    extension: marker, variant: "catalogue",
+                    extension: config.marker,
+                    variant: "catalogue",
                     parts: { catalogue, library: texts[ 0 ], sources }
                 }, "*" );
             } );
         } ).catch( function () {} );
     }
 
-    send_catalogue();
+    catalogue_send();
 
-    chrome.storage.local.get( storage_key ).then( function ( stored ) {
-        const settings = stored && stored[ storage_key ];
+    chrome.storage.local.get( config.storage_key ).then( function ( stored ) {
+        const settings = stored && stored[ config.storage_key ];
         if( !settings ) return;
 
-        remember( settings );
-        ask_page( "settings", { settings }, 1000 );
+        storage_remember( settings );
+        page_ask( "settings", { settings }, config.settings_wait );
 
-        if( document.readyState === "loading" ) {
-            document.addEventListener( "DOMContentLoaded", function () {
-                ask_page( "settings", { settings }, 1000 );
-            }, { once: true } );
-        }
+        if( document.readyState !== "loading" ) return;
+
+        document.addEventListener( "DOMContentLoaded", function () {
+            page_ask( "settings", { settings }, config.settings_wait );
+        }, { once: true } );
     } ).catch( function () {} );
 
     chrome.storage.onChanged.addListener( function ( changes, area ) {
-        if( area !== "local" || !changes[ storage_key ] ) return;
-        push( changes[ storage_key ].newValue || {} );
+        if( area !== "local" || !changes[ config.storage_key ] ) return;
+        settings_push( changes[ config.storage_key ].newValue || {} );
     } );
 
     window.addEventListener( "message", function ( event ) {
         if( event.source !== window ) return;
 
         const message = event.data;
-        if( !message || message.extension !== marker ) return;
+        if( !message || message.extension !== config.marker ) return;
         if( !/_answer$/.test( message.variant || "" ) ) return;
 
-        const resolve = waiting.get( message.serial );
+        const resolve = page_answers.get( message.serial );
         if( resolve ) resolve( message );
     } );
 
     chrome.runtime.onMessage.addListener( function ( message, sender, respond ) {
         if( !message || typeof message.variant !== "string" ) return undefined;
 
-        if( message.variant === "status" ) {
-            ask_page( "status", {}, 800 ).then( function ( answer ) {
-                reply( respond, {
-                    ok: true,
-                    armed: Boolean( answer ),
-                    editor: is_editor_frame(),
-                    status: answer? answer.status: null,
-                    url: location.href
-                } );
-            } );
-            return true;
-        }
-
         if( message.variant === "transfer" ) {
-            if( !is_editor_frame() ) return undefined;
+            if( !frame_is_editor() ) return undefined;
 
-            ask_page( "transfer", { any: message.any }, 2500 ).then( function ( answer ) {
-                if( !answer ) {
-                    respond( { ok: false, error: "the page hook did not answer" } );
-                    return;
-                }
-
-                respond( {
-                    ok: true,
-                    applied: Boolean( answer.applied ),
-                    detail: answer.detail || null,
-                    error: answer.error || null
+            page_ask( "transfer", { any: message.any }, config.transfer_wait )
+                .then( function ( answer ) {
+                    respond( { applied: Boolean( answer && answer.applied ) } );
                 } );
-            } );
+
             return true;
         }
 
         if( message.variant === "settings" ) {
-            push( message.settings || {} ).then( function ( answer ) {
-                respond( { ok: true, applied: answer? answer.applied: null } );
+            settings_push( message.settings || {} ).then( function ( answer ) {
+                respond( { applied: Boolean( answer && answer.applied ) } );
             } );
+
             return true;
         }
 

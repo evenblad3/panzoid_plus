@@ -1,12 +1,14 @@
 uniform float force;
+
 uniform float red;
 uniform float green;
 uniform float blue;
+
 uniform float stochastic;
 
 void main() {
-    vec2 spread = remap( force, 0.0, 32.0 ) * 0.01 * round_offset();
-    vec3 reach = remap( vec3( red, green, blue ), 0.0, 2.0 );
+    vec2 spread = remap_float( force, 0.0, 32.0 ) * 0.01 / get_texel_round();
+    vec3 reach = remap_float( vec3( red, green, blue ), 0.0, 2.0 );
 
     float count_inverse = 1.0 / float( fetches );
 
@@ -14,12 +16,12 @@ void main() {
     float alpha = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        vec2 offset = vogel_scatter( it, count_inverse, stochastic ) * spread;
-        vec4 middle = sample_it( vUv + offset * reach.y );
+        vec2 offset = get_vogel_scatter( it, count_inverse, stochastic ) * spread;
+        vec4 middle = sample_texel( vUv + offset * reach.y );
 
-        total.x += sample_it( vUv + offset * reach.x ).x;
+        total.x += sample_texel( vUv + offset * reach.x ).x;
         total.y += middle.y;
-        total.z += sample_it( vUv + offset * reach.z ).z;
+        total.z += sample_texel( vUv + offset * reach.z ).z;
 
         alpha += middle.w;
     }

@@ -1,16 +1,18 @@
 uniform float force;
+
 uniform vec3 tint;
 uniform float protect;
+
 uniform float feather;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    float keep = remap( protect, 0.0, 1.2 );
-    float soft = max( remap( feather, 0.0, 0.5 ), c_epsilon );
+    float reach = remap_float( 1.0 - protect, 0.0, 1.2 );
+    float soft = max( remap_float( feather, 0.0, 0.5 ), c_epsilon );
 
-    float drop = smoothstep( keep - soft, keep + soft, distance( texel.xyz, tint ) )
+    float drop = smoothstep( reach + soft, reach - soft, distance( texel.xyz, tint ) )
         * clamp( force, 0.0, 1.0 );
 
-    gl_FragColor = vec4( mix( texel.xyz, vec3( luma( texel.xyz ) ), drop ), texel.w );
+    gl_FragColor = vec4( mix( texel.xyz, vec3( get_luma( texel.xyz ) ), drop ), texel.w );
 }

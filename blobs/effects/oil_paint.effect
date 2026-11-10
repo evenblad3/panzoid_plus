@@ -1,14 +1,15 @@
 uniform float force;
+
 uniform float sharpness;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    float strength = remap( force, 2.0, 16.0 );
+    float strength = remap_float( force, 2.0, 16.0 );
     float zeta = 1.0 / strength;
 
     float edge = ( float( fetches ) - 1.0 ) * 0.5;
-    vec2 step_uv = texel_size();
+    vec2 step_uv = get_texel_step();
 
     vec4 mean[ 8 ];
     vec3 square[ 8 ];
@@ -25,8 +26,9 @@ void main() {
             float fall = exp( -3.125 * dot( spread, spread ) );
             if( fall < 0.0001 ) continue;
 
-            vec3 beside = clamp( sample_it( vUv + spread * strength * step_uv ).xyz,
-                0.0, 1.0 );
+            vec3 beside = clamp(
+                sample_texel( vUv + spread * strength * step_uv ).xyz, 0.0, 1.0
+            );
 
             float flat_x = zeta - zeta * spread.x * spread.x;
             float flat_y = zeta - zeta * spread.y * spread.y;
@@ -67,7 +69,7 @@ void main() {
         }
     }
 
-    float bite = remap( sharpness, 1.0, 14.0 );
+    float bite = remap_float( sharpness, 1.0, 14.0 );
 
     vec3 made = vec3( 0.0 );
     float carried = 0.0;
@@ -86,5 +88,6 @@ void main() {
     }
 
     gl_FragColor = vec4(
-        ( carried > 0.0 )? clamp( made / carried, 0.0, 1.0 ): texel.xyz, texel.w );
+        ( carried > 0.0 )? clamp( made / carried, 0.0, 1.0 ): texel.xyz, texel.w
+    );
 }

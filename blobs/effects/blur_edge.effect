@@ -1,18 +1,21 @@
 uniform float force;
-uniform vec2 position;
-uniform float size;
+
 uniform float highlight;
+
+uniform vec2 position;
+uniform float scale;
 uniform float feather;
+
 uniform float stochastic;
 
 void main() {
-    float away = length( ( vUv - remap( position, -1.0, 2.0 ) ) * round_coordinate() );
+    float away = length( ( vUv - remap_float( position, -1.0, 2.0 ) ) * get_texel_round() );
 
-    float edge = max( size, c_epsilon );
-    float soft = max( remap( feather, 0.0, 2.0 ), c_epsilon ) * edge;
+    float edge = max( scale, c_epsilon );
+    float soft = max( remap_float( feather, 0.0, 2.0 ), c_epsilon ) * edge;
 
     vec2 spread = smoothstep( edge - soft, edge + soft, away )
-        * remap( force, 0.0, 4.0 ) * 0.05 * round_offset();
+        * remap_float( force, 0.0, 4.0 ) * 0.05 / get_texel_round();
 
     float count_inverse = 1.0 / float( fetches );
 
@@ -20,12 +23,14 @@ void main() {
     float weight_total = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        vec4 texel = sample_it( vUv + vogel_scatter( it, count_inverse, stochastic ) * spread );
-        float weight = pow( length( texel.xyz ), remap( highlight, 0.5, 4.0 ) );
+        vec4 texel = sample_texel(
+            vUv + get_vogel_scatter( it, count_inverse, stochastic ) * spread
+        );
+        float weight = pow( length( texel.xyz ), remap_float( highlight, 0.5, 4.0 ) );
 
         total += texel * weight;
         weight_total += weight;
     }
 
-    gl_FragColor = ( weight_total > 0.0 )? total / weight_total: sample_it( vUv );
+    gl_FragColor = ( weight_total > 0.0 )? total / weight_total: sample_texel( vUv );
 }

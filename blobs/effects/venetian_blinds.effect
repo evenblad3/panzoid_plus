@@ -1,19 +1,21 @@
 uniform float force;
-uniform float thickness;
+
 uniform float angle;
+uniform float thickness;
 uniform float margin;
 uniform float feather;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
     float turn = radians( angle );
-    float slat = max( remap( thickness, 0.002, 1.0 ), c_epsilon );
+    float slat = max( remap_float( thickness, 0.002, 1.0 ), c_epsilon );
 
-    float across = mod( dot( ( vUv - 0.5 ) * round_coordinate(),
-        vec2( cos( turn ), -sin( turn ) ) ), slat );
+    float across = mod(
+        dot( ( vUv - 0.5 ) * get_texel_round(), vec2( cos( turn ), -sin( turn ) ) ), slat
+    );
 
-    float edge = remap( margin, 0.0, 0.9 ) * slat * 0.5;
+    float edge = remap_float( margin, 0.0, 0.9 ) * slat * 0.5;
     float soft = max( feather, c_epsilon ) * slat * 0.5;
 
     float opening = smoothstep( edge - soft, edge + soft, across )

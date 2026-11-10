@@ -1,32 +1,21 @@
-
-( function() {
+( function () {
     "use strict";
 
-    if( window.__plus_armed ) return;
-    window.__plus_armed = true;
-
-    const defaults = {
-        fix_text_uv: true,
-        anisotropy: true,
-        better_shadows: true,
-        mount_effects: true,
-        sharp_preview: false,
-        precise_values: false
-    };
+    if( window.plus_installed ) return;
+    window.plus_installed = true;
 
     const marker = "panzoid+";
 
-    const anisotropy_level = 8;
-    const decimals_shown = 3;
-    const shadow_factor = 4;
-    const shadow_bias = -0.016;
-    const preview_scale_limit = 8;
+    const defaults = {
+        anisotropy: true,
+        correct_uv: true,
+        mount_effects: true,
+        precise_values: true,
+        full_preview: false
+    };
+
     const flat_enough = 0.5;
     const epsilon = 1e-12;
-
-    const settle_ticks = 2400;
-    const settle_wait = 25;
-    const watch_wait = 2000;
 
     let settings = defaults;
     try {
@@ -34,72 +23,62 @@
         if( raw ) settings = Object.assign( {}, defaults, JSON.parse( raw ) );
     } catch( error ) {}
 
-    const status = {
-        contexts: 0,
-        samples: 0,
-        three: "not found",
-        patched: 0,
-        geometries_fixed: 0,
-        shadows_scaled: 0,
-        shadow_size: 0,
-        anisotropic: 0,
-        mounted: 0,
-        preview: "",
-        last_transfer: "",
-        hooks: {},
-    };
+    let texture_limit = 0;
 
-    let max_texture_size = 0;
-
-    function describe( node ) {
-        if( node === window ) return "window";
-        if( node === document ) return "document";
-        if( !node ) return "null";
-        if( !node.tagName ) {
-            return String( ( node.constructor && node.constructor.name ) || node );
-        }
-        return node.tagName.toLowerCase()
-            + ( node.id ? "#" + node.id : "" )
-            + ( node.className && typeof node.className === "string"
-                ? "." + node.className.trim().split( /\s+/ ).slice( 0, 2 ).join( "." ) : "" );
-    }
-
-    function renderer_params( parameters ) {
-        const given = parameters[ 0 ] && typeof parameters[ 0 ] === "object"
-            ? parameters[ 0 ] : {};
+    function renderer_wanted( parameters ) {
+        const given = parameters[ 0 ] && typeof parameters[ 0 ] === "object"?
+            parameters[ 0 ]: {};
 
         if( given.context ) return parameters;
 
         parameters[ 0 ] = Object.assign( {}, given, {
             antialias: true,
-            powerPreference: "high-performance",
+            powerPreference: "high-performance"
         } );
+
         return parameters;
     }
 
-    function note_renderer( renderer ) {
+    function renderer_note( renderer ) {
         try {
             const context = renderer.context
-                || ( typeof renderer.getContext === "function" ? renderer.getContext() : null );
-            if( !context ) return;
+                || ( typeof renderer.getContext === "function"? renderer.getContext(): null );
+            if( !context ) return renderer;
 
-            status.contexts++;
-
-            const attributes = context.getContextAttributes();
-            status.samples = attributes && attributes.antialias
-                ? ( context.getParameter( context.SAMPLES ) || 0 ) : 0;
-            max_texture_size = Math.max( max_texture_size,
+            texture_limit = Math.max( texture_limit,
                 context.getParameter( context.MAX_TEXTURE_SIZE ) || 0 );
         } catch( error ) {}
 
         return renderer;
     }
 
-    function fix_geometry_uv( geometry ) {
-        if( !geometry || geometry.__plus_uv_fixed ) return;
+    function vector_minus( points, from, take ) {
+        return [
+            points[ from ] - points[ take ],
+            points[ from + 1 ] - points[ take + 1 ],
+            points[ from + 2 ] - points[ take + 2 ]
+        ];
+    }
 
+    function vector_cross( one, two ) {
+        return [
+            one[ 1 ] * two[ 2 ] - one[ 2 ] * two[ 1 ],
+            one[ 2 ] * two[ 0 ] - one[ 0 ] * two[ 2 ],
+            one[ 0 ] * two[ 1 ] - one[ 1 ] * two[ 0 ]
+        ];
+    }
+
+    function facing_camera( normal ) {
+        const length = Math.hypot( normal[ 0 ], normal[ 1 ], normal[ 2 ] );
+
+        if( length < epsilon ) return true;
+        return Math.abs( normal[ 2 ] / length ) > flat_enough;
+    }
+
+    function geometry_fix( geometry ) {
         const position = geometry.attributes && geometry.attributes.position;
         const uv = geometry.attributes && geometry.attributes.uv;
+
         if( !position || !uv ) return;
         if( position.count !== uv.count || position.count % 3 !== 0 ) return;
 
@@ -109,48 +88,31 @@
 
         for( let it = 0; it < position.count; it += 3 ) {
             const first = it * 3;
-            const second = first + 3;
-            const third = first + 6;
 
-            const edge_a_x = points[ second ] - points[ first ];
-            const edge_a_y = points[ second + 1 ] - points[ first + 1 ];
-            const edge_a_z = points[ second + 2 ] - points[ first + 2 ];
+            const edge_a = vector_minus( points, first + 3, first );
+            const edge_b = vector_minus( points, first + 6, first );
 
-            const edge_b_x = points[ third ] - points[ first ];
-            const edge_b_y = points[ third + 1 ] - points[ first + 1 ];
-            const edge_b_z = points[ third + 2 ] - points[ first + 2 ];
+            if( facing_camera( vector_cross( edge_a, edge_b ) ) ) continue;
 
-            const normal_x = edge_a_y * edge_b_z - edge_a_z * edge_b_y;
-            const normal_y = edge_a_z * edge_b_x - edge_a_x * edge_b_z;
-            const normal_z = edge_a_x * edge_b_y - edge_a_y * edge_b_x;
-
-            const length = Math.hypot( normal_x, normal_y, normal_z );
-            if( length < epsilon ) continue;
-            if( Math.abs( normal_z / length ) > flat_enough ) continue;
-
-            const span_x = Math.max( Math.abs( edge_a_x ), Math.abs( edge_b_x ) );
-            const span_y = Math.max( Math.abs( edge_a_y ), Math.abs( edge_b_y ) );
-            const along_x = span_x >= span_y;
+            const along_x = Math.max( Math.abs( edge_a[ 0 ] ), Math.abs( edge_b[ 0 ] ) )
+                >= Math.max( Math.abs( edge_a[ 1 ] ), Math.abs( edge_b[ 1 ] ) );
 
             for( let corner = 0; corner < 3; corner++ ) {
                 const at = first + corner * 3;
-                coordinates[ ( it + corner ) * 2 ] = along_x ? points[ at ] : points[ at + 1 ];
+                coordinates[ ( it + corner ) * 2 ] = along_x? points[ at ]: points[ at + 1 ];
             }
+
             touched++;
         }
 
-        geometry.__plus_uv_fixed = true;
-        if( !touched ) return;
-        uv.needsUpdate = true;
-        status.geometries_fixed++;
+        if( touched ) uv.needsUpdate = true;
     }
 
-    function fix_legacy_geometry_uv( geometry ) {
-        if( !geometry || geometry.__plus_uv_fixed ) return;
-
+    function geometry_fix_legacy( geometry ) {
         const vertices = geometry.vertices;
         const faces = geometry.faces;
         const coordinates = geometry.faceVertexUvs && geometry.faceVertexUvs[ 0 ];
+
         if( !vertices || !faces || !coordinates ) return;
         if( coordinates.length !== faces.length ) return;
 
@@ -160,41 +122,39 @@
             const face = faces[ it ];
             const corners = [ vertices[ face.a ], vertices[ face.b ], vertices[ face.c ] ];
             const row = coordinates[ it ];
+
             if( !row || row.length < 3 ) continue;
+            if( !face.normal ) continue;
+            if( facing_camera( [ face.normal.x, face.normal.y, face.normal.z ] ) ) continue;
 
-            const normal = face.normal;
-            const length = normal ? Math.hypot( normal.x, normal.y, normal.z ) : 0;
-            if( length < epsilon ) continue;
-            if( Math.abs( normal.z / length ) > flat_enough ) continue;
-
-            const span_x = Math.max( Math.abs( corners[ 1 ].x - corners[ 0 ].x ),
-                Math.abs( corners[ 2 ].x - corners[ 0 ].x ) );
-            const span_y = Math.max( Math.abs( corners[ 1 ].y - corners[ 0 ].y ),
-                Math.abs( corners[ 2 ].y - corners[ 0 ].y ) );
-            const along_x = span_x >= span_y;
+            const along_x = Math.max( Math.abs( corners[ 1 ].x - corners[ 0 ].x ),
+                Math.abs( corners[ 2 ].x - corners[ 0 ].x ) )
+                >= Math.max( Math.abs( corners[ 1 ].y - corners[ 0 ].y ),
+                    Math.abs( corners[ 2 ].y - corners[ 0 ].y ) );
 
             for( let corner = 0; corner < 3; corner++ ) {
-                row[ corner ].x = along_x ? corners[ corner ].x : corners[ corner ].y;
+                row[ corner ].x = along_x? corners[ corner ].x: corners[ corner ].y;
             }
+
             touched++;
         }
 
-        geometry.__plus_uv_fixed = true;
-        if( !touched ) return;
-        geometry.uvsNeedUpdate = true;
-        status.geometries_fixed++;
+        if( touched ) geometry.uvsNeedUpdate = true;
     }
 
-    function fix_any( geometry ) {
-        if( !settings.fix_text_uv || !geometry ) return geometry;
+    function geometry_any( geometry ) {
+        if( !settings.correct_uv || !geometry || geometry.plus_uv_fixed ) return geometry;
+        geometry.plus_uv_fixed = true;
+
         try {
-            if( geometry.attributes ) fix_geometry_uv( geometry );
-            else if( geometry.faces ) fix_legacy_geometry_uv( geometry );
+            if( geometry.attributes ) geometry_fix( geometry );
+            else if( geometry.faces ) geometry_fix_legacy( geometry );
         } catch( error ) {}
+
         return geometry;
     }
 
-    function arm_anisotropy( THREE ) {
+    function anisotropy_arm( THREE ) {
         const prototype = THREE.Texture && THREE.Texture.prototype;
         if( !prototype ) return;
         if( Object.prototype.hasOwnProperty.call( prototype, "anisotropy" ) ) return;
@@ -202,34 +162,33 @@
         Object.defineProperty( prototype, "anisotropy", {
             configurable: true,
             get() {
-                return this.__plus_anisotropy === undefined ? 1 : this.__plus_anisotropy;
+                return this.plus_anisotropy === undefined? 1: this.plus_anisotropy;
             },
             set( any ) {
-                const wanted = settings.anisotropy
-                    ? Math.max( any, anisotropy_level ) : any;
-                Object.defineProperty( this, "__plus_anisotropy", {
-                    value: wanted, writable: true, configurable: true,
+                Object.defineProperty( this, "plus_anisotropy", {
+                    value: settings.anisotropy? Math.max( any, 8 ): any,
+                    writable: true,
+                    configurable: true
                 } );
-                if( wanted > 1 ) status.anisotropic++;
-            },
+            }
         } );
     }
 
     const classes = {
-        TextGeometry: { after: fix_any },
-        TextBufferGeometry: { after: fix_any },
-        ExtrudeGeometry: { after: fix_any },
-        ExtrudeBufferGeometry: { after: fix_any },
-        WebGLRenderer: { before: renderer_params, after: note_renderer },
+        TextGeometry: { after: geometry_any },
+        TextBufferGeometry: { after: geometry_any },
+        ExtrudeGeometry: { after: geometry_any },
+        ExtrudeBufferGeometry: { after: geometry_any },
+        WebGLRenderer: { before: renderer_wanted, after: renderer_note }
     };
-    const class_names = Object.keys( classes );
 
-    function wrap_class( name, original ) {
-        if( typeof original !== "function" || original.__plus_wrapped ) return original;
+    function class_wrap( name, original ) {
+        if( typeof original !== "function" || original.plus_wrapped ) return original;
         const rules = classes[ name ] || {};
 
         function patched( ...parameters ) {
-            const ready = rules.before ? rules.before( parameters ) : parameters;
+            const ready = rules.before? rules.before( parameters ): parameters;
+
             if( this instanceof patched ) {
                 try {
                     original.apply( this, ready );
@@ -237,76 +196,78 @@
                     return this;
                 } catch( error ) {}
             }
+
             const instance = new original( ...ready );
             if( rules.after ) rules.after( instance );
+
             return instance;
         }
+
         patched.prototype = original.prototype;
-        patched.__plus_wrapped = true;
+        patched.plus_wrapped = true;
         Object.setPrototypeOf( patched, original );
 
         try {
             Object.defineProperty( patched, "name", { value: name, configurable: true } );
         } catch( error ) {}
 
-        status.patched++;
         return patched;
     }
 
-    function arm_object( THREE ) {
-        if( !THREE || typeof THREE !== "object" || THREE.__plus_three_armed ) return;
+    function three_arm( THREE ) {
+        if( !THREE || typeof THREE !== "object" || THREE.plus_hooked ) return;
+
         try {
-            Object.defineProperty( THREE, "__plus_three_armed", { value: true, enumerable: false } );
+            Object.defineProperty( THREE, "plus_hooked", { value: true, enumerable: false } );
         } catch( error ) {}
 
-        const claim = ( name, transform ) => {
-            let held = transform( name, THREE[ name ] );
+        Object.keys( classes ).forEach( function ( name ) {
+            let held = class_wrap( name, THREE[ name ] );
+
             try {
                 Object.defineProperty( THREE, name, {
                     configurable: true,
                     enumerable: true,
                     get() { return held; },
-                    set( next ) { held = transform( name, next ); },
+                    set( next ) { held = class_wrap( name, next ); }
                 } );
             } catch( error ) {}
-        };
+        } );
 
-        for( const name of class_names ) claim( name, wrap_class );
-        arm_anisotropy( THREE );
-
-        status.three = "r" + ( THREE.REVISION || "?" ) + " armed";
+        anisotropy_arm( THREE );
     }
 
-    function watch_for_three() {
+    function three_watch() {
         let held = window.THREE;
+
         if( held ) {
-            arm_object( held );
+            three_arm( held );
             return;
         }
+
         try {
             Object.defineProperty( window, "THREE", {
                 configurable: true,
                 get() { return held; },
                 set( any ) {
                     held = any;
-                    arm_object( any );
-                },
+                    three_arm( any );
+                }
             } );
-        } catch( error ) {
-            status.three = "global is locked";
-        }
+        } catch( error ) {}
     }
 
-    watch_for_three();
+    three_watch();
 
-    function global_pz() {
+    function site_pz() {
         try {
             if( typeof PZ !== "undefined" && PZ ) return PZ;
         } catch( error ) {}
+
         return window.PZ || null;
     }
 
-    function reach( root, path ) {
+    function site_reach( root, path ) {
         let held = root;
 
         for( const step of path.split( "." ) ) {
@@ -317,79 +278,83 @@
         return held || null;
     }
 
-    function fill( list ) {
+    function list_fill( list ) {
         if( !Array.isArray( list ) || !settings.mount_effects ) return list;
-        if( list.some( ( entry ) => entry && entry.__plus_mounted ) ) return list;
+        if( list.some( ( entry ) => entry && entry.plus_mounted ) ) return list;
 
         const api = window.extension;
         const effects = api && api.effects;
         const build = api && api.effect;
+
         if( !Array.isArray( effects ) || !effects.length || !build ) return list;
 
-        list.push( { name: "Panzoid+", category: true, __plus_mounted: true } );
+        list.push( { name: "Panzoid+", category: true, plus_mounted: true } );
 
         for( const effect of effects ) {
             const any = build.build_any( effect );
 
             list.push( {
                 name: effect.name,
-                desc: effect.description
-                    || ( effect.tab? "Panzoid+ " + effect.tab.toLowerCase(): "Panzoid+" ),
+                desc: effect.description,
                 type: any.type,
                 data: any,
-                __plus_mounted: true
+                plus_mounted: true
             } );
         }
 
-        status.mounted = effects.length;
         return list;
     }
 
-    function mount( PZ ) {
+    function effects_mount( PZ ) {
         const types = PZ.ui && PZ.ui.objectTypes;
         if( !types || typeof types.get !== "function" ) return;
+        if( types.get.plus_wrapped ) return;
 
         const read = types.get.bind( types );
 
         function patched( key ) {
             const list = read( key );
-            return key === PZ.effect ? fill( list ) : list;
+            return key === PZ.effect? list_fill( list ): list;
         }
-        patched.__plus_wrapped = true;
 
+        patched.plus_wrapped = true;
         types.get = patched;
-        fill( PZ.effect && read( PZ.effect ) );
+
+        list_fill( PZ.effect && read( PZ.effect ) );
     }
 
     const live_fields = new Set();
 
-    function repaint_fields() {
-        live_fields.forEach( function( field ) {
-            const element = field.el;
-            if( !element || !element.isConnected ) {
+    function fields_repaint() {
+        live_fields.forEach( function ( field ) {
+            if( !field.el || !field.el.isConnected ) {
                 live_fields.delete( field );
                 return;
             }
+
             if( typeof field.value !== "number" ) return;
+
             try {
                 field.update( field.value );
             } catch( error ) {}
         } );
     }
 
-    function arm_precision( PZ ) {
+    function precision_arm( PZ ) {
         const input = PZ.ui && PZ.ui.input;
         const prototype = input && input.prototype;
+
         if( !prototype || typeof prototype.update !== "function" ) return;
+        if( prototype.update.plus_wrapped ) return;
 
         try {
             Object.defineProperty( prototype, "decimals", {
                 configurable: true,
                 get() {
-                    return settings.precise_values ? decimals_shown : this.__plus_decimals;
+                    return settings.precise_values? 3: this.plus_decimals;
                 },
                 set( any ) {
-                    Object.defineProperty( this, "__plus_decimals", {
+                    Object.defineProperty( this, "plus_decimals", {
                         value: any, writable: true, configurable: true
                     } );
                 }
@@ -404,12 +369,12 @@
             live_fields.add( this );
             return original.call( this, any, forced );
         }
-        patched.__plus_wrapped = true;
 
+        patched.plus_wrapped = true;
         prototype.update = patched;
     }
 
-    function with_pixel_ratio( ratio, body ) {
+    function ratio_during( ratio, body ) {
         let own = null;
 
         try {
@@ -436,31 +401,36 @@
         const resolution = view.sequence.properties.resolution.get();
         const project_width = resolution[ 0 ];
         const project_height = resolution[ 1 ];
+
         if( !project_width || !project_height ) return 1;
 
         const box = view.el.getBoundingClientRect();
         const fit = Math.min( box.width / project_width, box.height / project_height );
+
         if( !isFinite( fit ) || fit <= 0 ) return 1;
 
         const ratio = window.devicePixelRatio || 1;
         const natural_width = Math.round( Math.round( project_width * fit ) * ratio );
         const natural_height = Math.round( Math.round( project_height * fit ) * ratio );
+
         if( !natural_width || !natural_height ) return 1;
 
-        const cap = max_texture_size || 4096;
+        const cap = texture_limit || 4096;
         const scale = Math.min(
             project_width / natural_width,
             project_height / natural_height,
             cap / natural_width,
             cap / natural_height );
 
-        return scale > 1 ? Math.min( scale, preview_scale_limit ) : 1;
+        return scale > 1? Math.min( scale, 8 ): 1;
     }
 
-    function arm_viewport( PZ ) {
+    function preview_arm( PZ ) {
         const viewport = PZ.ui && PZ.ui.viewport;
         const prototype = viewport && viewport.prototype;
+
         if( !prototype || typeof prototype.resize !== "function" ) return;
+        if( prototype.resize.plus_wrapped ) return;
 
         const original = prototype.resize;
 
@@ -468,7 +438,7 @@
             const view = this;
             const parameters = arguments;
 
-            if( !settings.sharp_preview || !view.sequence || !view.el ) {
+            if( !settings.full_preview || !view.sequence || !view.el ) {
                 return original.apply( view, parameters );
             }
 
@@ -478,86 +448,28 @@
             } catch( error ) {
                 scale = 1;
             }
+
             if( scale <= 1 ) return original.apply( view, parameters );
 
-            const done = with_pixel_ratio( ( window.devicePixelRatio || 1 ) * scale,
-                function() { return original.apply( view, parameters ); } );
-
-            try {
-                status.preview = view.canvas.width + "x" + view.canvas.height;
-            } catch( error ) {}
-
-            return done;
+            return ratio_during( ( window.devicePixelRatio || 1 ) * scale,
+                function () { return original.apply( view, parameters ); } );
         }
-        patched.__plus_wrapped = true;
 
+        patched.plus_wrapped = true;
         prototype.resize = patched;
     }
 
-    function patch_light( PZ ) {
-        const holder = PZ.object3d;
-        const original = holder && holder.light;
-        if( typeof original !== "function" || original.__plus_wrapped ) return;
-
-        function scale_shadow( light ) {
-            const three = light && light.threeObj;
-            const shadow = three && three.shadow;
-            const size = shadow && shadow.mapSize;
-            if( !size || size.__plus_scaled ) return;
-            if( !settings.better_shadows ) return;
-
-            const cap = max_texture_size || 4096;
-            shadow.bias = shadow_bias;
-            shadow.radius = shadow_factor;
-            size.width = Math.min( size.width * shadow_factor, cap );
-            size.height = Math.min( size.height * shadow_factor, cap );
-
-            status.shadows_scaled++;
-            status.shadow_size = size.width;
-
-            try {
-                Object.defineProperty( size, "__plus_scaled", { value: true } );
-            } catch( error ) {}
-        }
-
-        function patched_light( ...parameters ) {
-            if( this instanceof patched_light ) {
-                try {
-                    original.apply( this, parameters );
-                    scale_shadow( this );
-                    return this;
-                } catch( error ) {}
-            }
-            const instance = new original( ...parameters );
-            scale_shadow( instance );
-            return instance;
-        }
-        patched_light.prototype = original.prototype;
-        patched_light.__plus_wrapped = true;
-        Object.setPrototypeOf( patched_light, original );
-
-        try {
-            Object.defineProperty( patched_light, "name",
-                { value: original.name, configurable: true } );
-        } catch( error ) {}
-
-        try {
-            holder.light = patched_light;
-        } catch( error ) {}
-    }
-
     const hooks = [
-        { name: "better_shadows", path: "object3d.light", arm: patch_light },
-        { name: "sharp_preview", path: "ui.viewport.prototype.resize", arm: arm_viewport },
-        { name: "precise_values", path: "ui.input.prototype.update", arm: arm_precision },
-        { name: "mount_effects", path: "ui.objectTypes.get", arm: mount }
+        { path: "ui.viewport.prototype.resize", arm: preview_arm },
+        { path: "ui.input.prototype.update", arm: precision_arm },
+        { path: "ui.objectTypes.get", arm: effects_mount }
     ];
 
-    function watch_for_pz() {
+    function site_watch() {
         let ticks = 0;
 
-        const tick = () => {
-            const PZ = global_pz();
+        const tick = function () {
+            const PZ = site_pz();
             let armed = 0;
 
             for( const hook of hooks ) {
@@ -567,28 +479,24 @@
                     } catch( error ) {}
                 }
 
-                const held = reach( PZ, hook.path );
-                const on = Boolean( held && held.__plus_wrapped );
-
-                status.hooks[ hook.name ] = on? "armed": "waiting";
-                if( on ) armed++;
+                const held = site_reach( PZ, hook.path );
+                if( held && held.plus_wrapped ) armed++;
             }
 
             ticks++;
-            setTimeout( tick, ( armed === hooks.length || ticks > settle_ticks )?
-                watch_wait: settle_wait );
+            setTimeout( tick, ( armed === hooks.length || ticks > 2400 )? 2000: 25 );
         };
 
         tick();
     }
 
     try {
-        watch_for_pz();
+        site_watch();
     } catch( error ) {}
 
-    function serve_clipboard( text, run ) {
+    function clipboard_serve( text, run ) {
         const clipboard = navigator.clipboard;
-        if( !clipboard ) return { served: false, reason: "this browser has no clipboard api" };
+        if( !clipboard ) return false;
 
         const own = Object.getOwnPropertyDescriptor( clipboard, "readText" );
         let served = false;
@@ -597,19 +505,18 @@
             Object.defineProperty( clipboard, "readText", {
                 configurable: true,
                 writable: true,
-                value: async() => {
+                value: async () => {
                     served = true;
                     return text;
-                },
+                }
             } );
         } catch( error ) {
-            return { served: false, reason: "clipboard api is locked down" };
+            return false;
         }
 
         try {
             run();
         } finally {
-
             setTimeout( () => {
                 try {
                     if( own ) Object.defineProperty( clipboard, "readText", own );
@@ -618,44 +525,30 @@
             }, 0 );
         }
 
-        return { served, reason: null };
+        return served;
     }
 
-    function ctrl_v() {
-        return new KeyboardEvent( "keydown", {
-            key: "v", code: "KeyV", keyCode: 86, which: 86,
-            ctrlKey: true, metaKey: false, shiftKey: false, altKey: false,
-            bubbles: true, cancelable: true, composed: true,
-        } );
-    }
-
-    function transfer( text ) {
+    function clip_transfer( text ) {
         const target = document.activeElement;
 
         if( !target || target === document.body || target === document.documentElement ) {
-            status.last_transfer = "nothing is focused in Clipmaker - click the panel to paste into";
             return false;
         }
 
         const tag = target.tagName;
-        if( tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" || target.isContentEditable ) {
-            status.last_transfer = "a text field has focus - click the panel to paste into";
-            return false;
-        }
+        if( tag === "INPUT" || tag === "SELECT" || tag === "TEXTAREA" ) return false;
+        if( target.isContentEditable ) return false;
 
-        const result = serve_clipboard( text, () => target.dispatchEvent( ctrl_v() ) );
+        const press = new KeyboardEvent( "keydown", {
+            key: "v", code: "KeyV", keyCode: 86, which: 86,
+            ctrlKey: true, metaKey: false, shiftKey: false, altKey: false,
+            bubbles: true, cancelable: true, composed: true
+        } );
 
-        if( result.reason ) {
-            status.last_transfer = result.reason;
-            return false;
-        }
-        status.last_transfer = result.served
-            ? "pasted into " + describe( target )
-            : describe( target ) + " did not handle ctrl+v - click the panel to paste into";
-        return result.served;
+        return clipboard_serve( text, () => target.dispatchEvent( press ) );
     }
 
-    function answer( variant, serial, payload ) {
+    function page_answer( variant, serial, payload ) {
         window.postMessage( Object.assign(
             { extension: marker, variant: variant + "_answer", serial }, payload ), "*" );
     }
@@ -675,34 +568,20 @@
 
         if( message.variant === "settings" ) {
             settings = Object.assign( {}, defaults, message.settings || {} );
-            repaint_fields();
+            fields_repaint();
 
-            answer( "settings", message.serial, { applied: true } );
+            page_answer( "settings", message.serial, { applied: true } );
             return;
         }
 
         if( message.variant === "transfer" ) {
             let applied = false;
-            let failure = null;
 
             try {
-                applied = transfer( message.any );
-            } catch( error ) {
-                failure = error && error.message? error.message: String( error );
-                status.last_transfer = "threw: " + failure;
-            }
+                applied = clip_transfer( message.any );
+            } catch( error ) {}
 
-            answer( "transfer", message.serial,
-                { applied, error: failure, detail: status.last_transfer } );
-            return;
-        }
-
-        if( message.variant === "status" ) {
-            answer( "status", message.serial, {
-                status: Object.assign( {}, status, {
-                    settings: Object.assign( {}, settings )
-                } )
-            } );
+            page_answer( "transfer", message.serial, { applied } );
         }
     } );
 } )();

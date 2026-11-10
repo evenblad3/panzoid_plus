@@ -5,11 +5,10 @@
 
     const defaults = {
         anisotropy: true,
-        better_shadows: true,
-        fix_text_uv: true,
+        correct_uv: true,
         mount_effects: true,
-        precise_values: false,
-        sharp_preview: false
+        precise_values: true,
+        full_preview: false
     };
 
     const pickers = {};
@@ -19,7 +18,7 @@
         if( picker ) pickers[ name ] = picker;
     } );
 
-    function save() {
+    function settings_save() {
         const settings = {};
 
         Object.keys( defaults ).forEach( function ( name ) {
@@ -37,7 +36,7 @@
             const on = typeof saved[ name ] === "boolean"? saved[ name ]: defaults[ name ];
 
             pickers[ name ].value = on? "on": "off";
-            pickers[ name ].addEventListener( "change", save );
+            pickers[ name ].addEventListener( "change", settings_save );
         } );
     } );
 } )();

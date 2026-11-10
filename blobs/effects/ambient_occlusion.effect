@@ -1,22 +1,27 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform float radius;
+
 uniform float stochastic;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
     float count_inverse = 1.0 / float( fetches );
-    vec2 reach = remap( radius, 0.0, 6.0 ) * 0.005 * round_offset();
+    vec2 reach = remap_float( radius, 0.0, 6.0 ) * 0.005 / get_texel_round();
 
     float around = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        around += luma_it( vUv + vogel_scatter( it, count_inverse, stochastic ) * reach );
+        around += sample_texel_luma(
+            vUv + get_vogel_scatter( it, count_inverse, stochastic ) * reach
+        );
     }
 
-    float shade = clamp( ( around * count_inverse - luma( texel.xyz ) )
-        * remap( force, 0.0, 8.0 ), 0.0, 1.0 );
+    float shade = clamp( ( around * count_inverse - get_luma( texel.xyz ) )
+        * remap_float( force, 0.0, 8.0 ), 0.0, 1.0 );
 
     gl_FragColor = vec4( mix( texel.xyz, tint, shade ), texel.w );
 }

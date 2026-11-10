@@ -1,22 +1,24 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform vec2 position;
-uniform float thickness;
 uniform float angle;
+uniform float thickness;
 uniform float feather;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
     float turn = radians( angle );
-    vec2 away = ( vUv - remap( position, -1.0, 2.0 ) ) * round_coordinate();
+    vec2 away = ( vUv - remap_float( position, -1.0, 2.0 ) ) * get_texel_round();
 
     float across = abs( dot( away, vec2( -sin( turn ), cos( turn ) ) ) )
-        - remap( thickness, 0.0, 6.0 ) * 0.025;
+        - remap_float( thickness, 0.0, 6.0 ) * 0.025;
 
     float soft = max( feather, c_epsilon ) * 0.5;
     float band = smoothstep( soft, -soft, across );
 
     gl_FragColor = texel
-        + vec4( tint, 1.0 ) * ( band * remap( force, 0.0, 6.0 ) * texel.w );
+        + vec4( tint, 1.0 ) * ( band * remap_float( force, 0.0, 6.0 ) * texel.w );
 }

@@ -1,11 +1,50 @@
+@font-face {
+    font-family: "Source Code Pro";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url( "../../blobs/fonts/source_code.woff2" ) format( "woff2" );
+}
+
 :root {
-    --panel: #2a2a2a;
-    --header: #222;
-    --line: #242424;
-    --hover: #2f2f2f;
-    --accent: #384668;
-    --text: #ccc;
-    --dim: #969696;
+    --font: "Source Code Pro", ui-monospace, Consolas, monospace;
+
+    --panel: #2e2e2e;
+    --header: #282828;
+    --hover: #373737;
+    --accent: #239077;
+    --accent-light: #5fd8bc;
+    --accent-dark: #155748;
+    --seam: #3a3a3a;
+    --line: transparent;
+    --spine: 2px;
+    --text: #d1d1d1;
+    --dim: #989898;
+
+    --size: 16px;
+    --small: 13px;
+    --pad: 3.25px 12px;
+    --line-w: 3px;
+    --rail-w: 32px;
+
+    --panel-grad: linear-gradient( #313131, #2a2a2a );
+    --header-grad: linear-gradient( #2c2c2c, #252525 );
+    --hover-grad: linear-gradient( #3b3b3b, #343434 );
+    --row-edge: inset 0 2px 0 var( --seam );
+    --hover-edge: inset 3px 0 0 var( --accent ), inset 0 2px 0 var( --seam );
+
+    --rail-bg: #202020;
+    --rail-grad: linear-gradient( #242424, #1c1c1c );
+    --rail-text: #dadada;
+    --rail-on-grad: linear-gradient( var( --accent ), var( --accent-dark ) );
+    --rail-on-text: #dfe3ec;
+
+    --field-bg: #2a2a2a;
+    --control-bg: #474747;
+    --control-grad: linear-gradient( #4d4d4d, #424242 );
+    --control-line: #585858;
+    --drop-line: #4a4a4a;
+    --drop-grad: linear-gradient( #323232, #2b2b2b );
 }
 
 * {
@@ -15,59 +54,53 @@
 }
 
 ::-webkit-scrollbar {
-    width: 12px;
-}
-
-::-webkit-scrollbar-track {
-    background: var( --header );
-}
-
-::-webkit-scrollbar-thumb {
-    background: #555;
+    width: 0;
+    height: 0;
 }
 
 body {
-    width: 360px;
+    width: 412px;
     margin: 0;
     overflow: hidden;
-    background: var( --panel );
+    background-color: var( --panel );
+    background-image: var( --panel-grad );
     color: var( --text );
-    font-family: "Source Code Pro", ui-monospace, Consolas, monospace;
-    font-size: 16px;
+    font-family: var( --font );
+    font-size: var( --size );
 }
 
 .page {
     min-height: 420px;
     max-height: 560px;
-    margin-right: 36px;
+    margin-left: var( --rail-w );
     overflow-y: scroll;
 }
 
 .rail {
     position: fixed;
     top: 0;
-    right: 0;
     bottom: 0;
-    width: 36px;
-    background: #000;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    width: var( --rail-w );
+    background-color: var( --rail-bg );
+    background-image: var( --rail-grad );
 }
 
 .rail_button {
-    display: block;
+    flex: 1;
     width: 100%;
-    height: 86px;
     padding: 0;
-    color: #dadada;
+    color: var( --rail-text );
     font-size: 15px;
     writing-mode: vertical-rl;
 }
 
 .rail_on {
-    background: var( --accent );
-}
-
-.rail_on:focus {
-    border-color: #717171;
+    background-color: var( --accent );
+    background-image: var( --rail-on-grad );
+    color: var( --rail-on-text );
 }
 
 .no_select {
@@ -84,7 +117,7 @@ input {
     font-size: inherit;
     color: inherit;
     cursor: default;
-    border: 2px solid transparent;
+    border: 0;
     background: transparent;
 }
 
@@ -96,9 +129,8 @@ input:focus,
 
 .text_button {
     padding: 0 6px;
-    color: var( --dim );
-    font-size: 14px;
-    text-decoration: underline;
+    color: var( --accent-light );
+    font-size: var( --small );
 }
 
 .text_button:hover {
@@ -110,14 +142,15 @@ input:focus,
 .tweak_note,
 .effect_button,
 .tweak {
-    padding: 5px 9px;
-    border-bottom: 1px solid var( --line );
+    padding: var( --pad );
+    border-bottom: var( --line-w ) solid var( --line );
+    box-shadow: var( --row-edge );
 }
 
 .title_row,
-.group_name,
-.entry {
-    background: var( --header );
+.group_name {
+    background-color: var( --header );
+    background-image: var( --header-grad );
 }
 
 .title_row {
@@ -126,10 +159,16 @@ input:focus,
     justify-content: space-between;
 }
 
-.logo {
+.title_name {
     margin: 0;
+    color: var( --text );
     font-size: 18px;
-    font-weight: normal;
+    font-weight: 500;
+}
+
+.group_name {
+    box-shadow: inset 0 2px 0 var( --seam ), inset var( --spine ) 0 0 var( --accent );
+    font-weight: 500;
 }
 
 .search_row {
@@ -141,8 +180,8 @@ input:focus,
     width: 100%;
     padding: 5px;
     margin: 1px 0;
-    background: var( --panel );
-    border: 2px solid #363636;
+    background: var( --field-bg );
+    border-left: var( --spine ) solid var( --accent-dark );
 }
 
 .match_count {
@@ -150,8 +189,8 @@ input:focus,
     top: 50%;
     right: 8px;
     transform: translateY( -50% );
-    color: var( --dim );
-    font-size: 14px;
+    color: var( --accent-light );
+    font-size: var( --small );
     pointer-events: none;
 }
 
@@ -162,13 +201,16 @@ input:focus,
 }
 
 .effect_button:active {
-    background: #3f3f3f;
+    background-color: #3f3f3f;
+    background-image: none;
 }
 
 .group_name:hover,
 .effect_button:hover,
 .tweak:hover {
-    background: var( --hover );
+    background-color: var( --hover );
+    background-image: var( --hover-grad );
+    box-shadow: var( --hover-edge );
 }
 
 .effect_description,
@@ -176,7 +218,7 @@ input:focus,
     display: block;
     margin-top: 5px;
     color: var( --dim );
-    font-size: 14px;
+    font-size: var( --small );
 }
 
 .empty {
@@ -189,13 +231,20 @@ input:focus,
     color: var( --text );
     font-size: 15px;
     line-height: 1.45;
-    background: var( --header );
+    background-color: var( --header );
+    background-image: var( --header-grad );
+}
+
+.tweak_warn {
+    display: block;
+    margin: 8px 0;
+    color: var( --text );
 }
 
 .tweak {
     position: relative;
     display: grid;
-    grid-template-columns: minmax( 0, auto ) min-content;
+    grid-template-columns: min-content minmax( 0, auto );
     align-items: center;
     gap: 10px;
     border: 2px solid transparent;
@@ -203,17 +252,29 @@ input:focus,
 }
 
 .tweak select {
+    order: -1;
     padding: 1px 4px;
     color: var( --text );
     font: inherit;
-    font-size: 14px;
-    background: #434343;
-    border: 1px solid #363636;
+    font-size: var( --small );
+    accent-color: var( --accent );
+    background-color: var( --control-bg );
+    background-image: var( --control-grad );
+    border: 1px solid var( --control-line );
 }
 
 .tweak select:focus {
-    outline: none;
     border-color: var( --accent );
+}
+
+.tweak select option {
+    color: var( --text );
+    background-color: var( --control-bg );
+}
+
+.tweak select option:checked {
+    color: var( --text );
+    background-color: var( --accent-dark );
 }
 
 .drop_zone {
@@ -221,21 +282,36 @@ input:focus,
     padding: 26px 9px;
     color: var( --dim );
     text-align: center;
-    border: 2px dashed #4a4a4a;
+    background-image: var( --drop-grad );
+    border: 1px dashed var( --drop-line );
 }
 
 .drop_zone:hover,
 .drop_on {
     color: var( --text );
-    background: var( --hover );
+    background-color: var( --hover );
+    background-image: var( --hover-grad );
     border-color: var( --accent );
 }
 
+.summary_row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+    border-bottom: var( --line-w ) solid var( --seam );
+}
+
 .inspect_summary {
-    padding: 5px 9px;
+    padding: var( --pad );
     color: var( --text );
-    font-size: 14px;
-    border-bottom: 1px solid var( --line );
+    font-size: var( --small );
+    line-height: 1.45;
+}
+
+.summary_row .text_button {
+    flex: none;
+    padding: var( --pad );
 }
 
 .tree {
@@ -254,7 +330,7 @@ input:focus,
 }
 
 .node_value {
-    color: var( --dim );
+    color: var( --accent-light );
 }
 
 .node_name + .node_value:before {
@@ -263,7 +339,7 @@ input:focus,
 
 .entry {
     margin-top: 5px;
-    border-bottom: 1px solid var( --line );
+    border-bottom: var( --line-w ) solid var( --seam );
 }
 
 .save_button {
@@ -271,8 +347,8 @@ input:focus,
 }
 
 .readme {
-    padding: 5px 9px;
-    font-size: 14px;
+    padding: var( --pad );
+    font-size: var( --small );
     line-height: 1.4;
 }
 
@@ -281,8 +357,13 @@ input:focus,
     color: var( --dim );
 }
 
+.readme a {
+    color: var( --accent-light );
+    text-decoration: underline;
+}
+
 .review_row {
-    padding: 5px 9px;
+    padding: var( --pad );
     text-align: center;
-    border-bottom: 1px solid var( --line );
+    border-bottom: var( --line-w ) solid var( --seam );
 }

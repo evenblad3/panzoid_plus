@@ -1,39 +1,50 @@
 uniform float force;
+
 uniform float radius;
+
 uniform float stochastic;
 
-void main() {
-    vec4 keep = sample_it( vUv );
+const int c_refine = 8;
 
-    vec2 reach = max( remap( radius, 1.0, 64.0 ), 1.0 ) * texel_size();
+void main() {
+    vec4 keep = sample_texel( vUv );
+
+    vec2 reach = max( remap_float( radius, 1.0, 64.0 ), 1.0 ) * get_texel_step();
     float count_inverse = 1.0 / float( fetches );
 
-    float brightness[ fetches ];
+    float low = 0.0;
+    float high = 1.0;
 
-    for( int it = 0; it < int( fetches ); ++it ) {
-        brightness[ it ] = luma_it( vUv + vogel_scatter( it, count_inverse, stochastic ) * reach );
-    }
+    for( int refine = 0; refine < c_refine; ++refine ) {
+        float middle = ( low + high ) * 0.5;
+        float below = 0.0;
 
-    int middle = 0;
-    int closest = int( fetches );
-
-    for( int it = 0; it < int( fetches ); ++it ) {
-        int below = 0;
-
-        for( int other = 0; other < int( fetches ); ++other ) {
-            if( brightness[ other ] < brightness[ it ] ) below += 1;
+        for( int it = 0; it < int( fetches ); ++it ) {
+            below += step( sample_texel_luma(
+                vUv + get_vogel_scatter( it, count_inverse, stochastic ) * reach
+            ), middle );
         }
 
-        int gap = below - int( fetches ) / 2;
-        if( gap < 0 ) gap = -gap;
-
-        if( gap < closest ) {
-            closest = gap;
-            middle = it;
-        }
+        if( below * count_inverse < 0.5 ) low = middle;
+        else high = middle;
     }
 
-    vec4 picked = sample_it( vUv + vogel_scatter( middle, count_inverse, stochastic ) * reach );
+    float wanted = ( low + high ) * 0.5;
+
+    vec4 picked = keep;
+    float nearest = 1.0;
+
+    for( int it = 0; it < int( fetches ); ++it ) {
+        vec4 texel = sample_texel(
+            vUv + get_vogel_scatter( it, count_inverse, stochastic ) * reach
+        );
+        float apart = abs( get_luma( texel.xyz ) - wanted );
+
+        if( apart < nearest ) {
+            nearest = apart;
+            picked = texel;
+        }
+    }
 
     gl_FragColor = mix( keep, vec4( picked.xyz, keep.w ), clamp( force, 0.0, 1.0 ) );
 }

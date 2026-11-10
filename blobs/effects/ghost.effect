@@ -1,23 +1,29 @@
 uniform float force;
+
 uniform vec3 tint;
+
 uniform vec2 position;
 uniform float shrink;
 uniform float feather;
+
 uniform float stochastic;
 
 void main() {
-    vec4 texel = sample_it( vUv );
+    vec4 texel = sample_texel( vUv );
 
-    vec2 spread = remap( feather, 0.0, 0.25 ) * round_offset();
+    vec2 spread = remap_float( feather, 0.0, 0.25 ) / get_texel_round();
 
-    vec2 placed = remap( position, -1.0, 2.0 );
-    vec2 pulled = placed + ( vUv - placed ) * max( 1.0 - remap( shrink, -1.0, 0.9 ), c_epsilon );
+    vec2 placed = remap_float( position, -1.0, 2.0 );
+    vec2 pulled = placed
+        + ( vUv - placed ) * max( 1.0 - remap_float( shrink, -1.0, 0.9 ), c_epsilon );
 
     float count_inverse = 1.0 / float( fetches );
     vec4 copy = vec4( 0.0 );
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        copy += sample_it( pulled + vogel_scatter( it, count_inverse, stochastic ) * spread );
+        copy += sample_texel(
+            pulled + get_vogel_scatter( it, count_inverse, stochastic ) * spread
+        );
     }
 
     copy *= count_inverse;

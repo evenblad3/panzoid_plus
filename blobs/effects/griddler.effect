@@ -1,18 +1,19 @@
 uniform float force;
-uniform vec4 stretch;
-uniform float scale;
+
 uniform vec2 rotation;
+uniform float scale;
+uniform vec4 stretch;
 
 void main() {
-    float aspect = aspect_ratio();
+    float aspect = get_texel_round().x;
 
-    float cell_size = max( remap( scale, 0.01, 1.0 ), 0.001 );
+    float cell_size = max( remap_float( scale, 0.01, 1.0 ), 0.001 );
     vec2 square_uv = vec2( vUv.x * aspect, vUv.y );
 
     vec2 cell = floor( square_uv / cell_size );
     vec2 inside = fract( square_uv / cell_size ) - 0.5;
 
-    vec4 pulled = remap( stretch, 0.1, 4.0 );
+    vec4 pulled = remap_float( stretch, 0.1, 4.0 );
     vec2 spun = radians( rotation );
 
     float odd = mod( cell.x + cell.y, 2.0 );
@@ -20,15 +21,14 @@ void main() {
 
     float cosine = cos( turn );
     float sine = sin( turn );
+
     inside = vec2( inside.x * cosine - inside.y * sine, inside.x * sine + inside.y * cosine );
     inside /= max( mix( pulled.xy, pulled.zw, odd ), vec2( 0.001 ) );
 
     vec2 at = ( cell + inside + 0.5 ) * cell_size;
     at.x /= aspect;
 
-    vec4 made = ( at.x < 0.0 || at.x > 1.0 || at.y < 0.0 || at.y > 1.0 )
-        ? vec4( 0.0 )
-        : sample_it( at );
+    vec4 made = ( at != clamp( at, 0.0, 1.0 ) )? vec4( 0.0 ): sample_texel( at );
 
-    gl_FragColor = mix( sample_it( vUv ), made, clamp( force, 0.0, 1.0 ) );
+    gl_FragColor = mix( sample_texel( vUv ), made, clamp( force, 0.0, 1.0 ) );
 }

@@ -1,21 +1,25 @@
 uniform float force;
+
 uniform float highlight;
+
 uniform float stochastic;
 
 void main() {
-    vec2 spread = remap( force, 0.0, 32.0 ) * 0.01 * round_offset();
+    vec2 spread = remap_float( force, 0.0, 32.0 ) * 0.01 / get_texel_round();
     float count_inverse = 1.0 / float( fetches );
 
     vec4 total = vec4( 0.0 );
     float weight_total = 0.0;
 
     for( int it = 0; it < int( fetches ); ++it ) {
-        vec4 texel = sample_it( vUv + vogel_scatter( it, count_inverse, stochastic ) * spread );
-        float weight = pow( length( texel.xyz ), remap( highlight, 0.5, 4.0 ) );
+        vec4 texel = sample_texel(
+            vUv + get_vogel_scatter( it, count_inverse, stochastic ) * spread
+        );
+        float weight = pow( length( texel.xyz ), remap_float( highlight, 0.5, 4.0 ) );
 
         total += texel * weight;
         weight_total += weight;
     }
 
-    gl_FragColor = ( weight_total > 0.0 )? total / weight_total: sample_it( vUv );
+    gl_FragColor = ( weight_total > 0.0 )? total / weight_total: sample_texel( vUv );
 }
