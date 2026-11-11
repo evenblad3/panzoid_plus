@@ -11,7 +11,7 @@ void main() {
 
     vec2 reach = remap_float( thickness, 0.0, 8.0 ) * 0.01 / get_texel_round();
 
-    const int c_steps = fetches / c_rays;
+    const int c_steps = int( fetches ) / c_rays;
 
     float step_inverse = 1.0 / float( c_steps );
     float wedge = c_pi2 / float( c_rays );

@@ -5,11 +5,15 @@ const float c_golden = 2.399963;
 
 const vec3 c_luma = vec3( 0.2126, 0.7152, 0.0722 );
 
-#define sample_texel( texel ) texture2D( tDiffuse, clamp( texel, 0.0, 1.0 ) * uvScale )
+#define sample_texel( texel ) texture2D( tDiffuse, get_mirror( texel ) * uvScale )
 #define sample_texel_luma( texel ) dot( sample_texel( texel ).xyz, c_luma )
 
 #define remap_float( any, near, far ) ( near + ( far - near ) * any )
 #define remap_signed( any, far ) ( far * ( any * 2.0 - 1.0 ) )
+
+vec2 get_mirror( vec2 texel ) {
+    return 1.0 - abs( mod( texel, 2.0 ) - 1.0 );
+}
 
 vec2 get_resolution() {
     return gl_FragCoord.xy / max( vUv, vec2( c_epsilon ) );

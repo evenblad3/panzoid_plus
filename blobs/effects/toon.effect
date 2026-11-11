@@ -12,7 +12,7 @@ void main() {
 
     float steps = max( remap_float( posterize, 2.0, 16.0 ), 2.0 );
     float bright = pow( clamp( get_luma( texel.xyz ), 0.0, 1.0 ),
-        max( remap_float( exposure, 0.2, 3.0 ), c_epsilon ) );
+        exp2( remap_signed( exposure, 1.5 ) ) );
 
     float along = bright * ( steps - 1.0 );
     float edge = max( clamp( feather, 0.0, 1.0 ), c_epsilon ) * 0.5;

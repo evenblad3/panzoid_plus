@@ -15,7 +15,7 @@ void main() {
         vec4 texel = sample_texel(
             vUv + get_vogel_scatter( it, count_inverse, stochastic ) * spread
         );
-        float weight = pow( length( texel.xyz ), remap_float( highlight, 0.5, 4.0 ) );
+        float weight = pow( length( texel.xyz ), exp2( remap_signed( highlight, 2.0 ) ) );
 
         total += texel * weight;
         weight_total += weight;

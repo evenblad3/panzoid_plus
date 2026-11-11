@@ -190,11 +190,10 @@
             const ready = rules.before? rules.before( parameters ): parameters;
 
             if( this instanceof patched ) {
-                try {
-                    original.apply( this, ready );
-                    if( rules.after ) rules.after( this );
-                    return this;
-                } catch( error ) {}
+                original.apply( this, ready );
+                if( rules.after ) rules.after( this );
+
+                return this;
             }
 
             const instance = new original( ...ready );
@@ -324,14 +323,18 @@
     }
 
     const live_fields = new Set();
+    const field_crowd = 512;
+
+    function fields_prune() {
+        live_fields.forEach( function ( field ) {
+            if( !field.el || !field.el.isConnected ) live_fields.delete( field );
+        } );
+    }
 
     function fields_repaint() {
-        live_fields.forEach( function ( field ) {
-            if( !field.el || !field.el.isConnected ) {
-                live_fields.delete( field );
-                return;
-            }
+        fields_prune();
 
+        live_fields.forEach( function ( field ) {
             if( typeof field.value !== "number" ) return;
 
             try {
@@ -366,6 +369,8 @@
         const original = prototype.update;
 
         function patched( any, forced ) {
+            if( live_fields.size >= field_crowd ) fields_prune();
+
             live_fields.add( this );
             return original.call( this, any, forced );
         }

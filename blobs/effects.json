@@ -24,7 +24,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 0.031, "near": 0.0, "far": 1.0 },
 
-            { "name": "highlight", "variant": "float", "any": 0.143, "near": 0.0, "far": 1.0 },
+            { "name": "highlight", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
 
             { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
             { "name": "fetches", "variant": "float", "any": 512.0, "near": 8.0, "far": 948.0, "constant": true }
@@ -42,7 +42,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
 
-            { "name": "highlight", "variant": "float", "any": 0.474, "near": 0.0, "far": 1.0 },
+            { "name": "highlight", "variant": "float", "any": 0.75, "near": 0.0, "far": 1.0 },
 
             { "name": "direction", "variant": "float2", "any": [ 0.5, 0.75 ], "near": 0.0, "far": 1.0 },
 
@@ -62,7 +62,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
 
-            { "name": "highlight", "variant": "float", "any": 0.474, "near": 0.0, "far": 1.0 },
+            { "name": "highlight", "variant": "float", "any": 0.75, "near": 0.0, "far": 1.0 },
 
             { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
             { "name": "scale", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
@@ -84,7 +84,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 0.4, "near": 0.0, "far": 1.0 },
 
-            { "name": "highlight", "variant": "float", "any": 0.474, "near": 0.0, "far": 1.0 },
+            { "name": "highlight", "variant": "float", "any": 0.75, "near": 0.0, "far": 1.0 },
 
             { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
 
@@ -179,9 +179,9 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
 
-            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 0.86, 0.7 ] },
             { "name": "exposure", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
-            { "name": "contrast", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 }
+            { "name": "contrast", "variant": "float", "any": 0.56, "near": 0.0, "far": 1.0 }
         ]
     },
     {
@@ -204,7 +204,7 @@
         "serial": "leave_color",
 
         "name": "Leave Color",
-        "description": "Takes the colour you pick out of the picture and leaves everything else. The classic shot where one coat stays red and the street turns grey.",
+        "description": "Takes the colour you pick out of the picture and leaves every other colour alone. Pick the red and only the red things go grey.",
 
         "tab": "color",
         "internal": "leave_color.effect",
@@ -267,11 +267,11 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
 
-            { "name": "saturation", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
+            { "name": "saturation", "variant": "float", "any": 0.55, "near": 0.0, "far": 1.0 },
 
-            { "name": "low", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+            { "name": "low", "variant": "float", "any": 0.18, "near": 0.0, "far": 1.0 },
             { "name": "mid", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
-            { "name": "high", "variant": "float", "any": 0.75, "near": 0.0, "far": 1.0 }
+            { "name": "high", "variant": "float", "any": 0.82, "near": 0.0, "far": 1.0 }
         ]
     },
     {
@@ -324,7 +324,7 @@
             { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
 
             { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
-            { "name": "scale", "variant": "float2", "any": [ 0.184, 0.184 ], "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
             { "name": "rotation", "variant": "float", "any": 0.0, "near": 0.0, "far": 360.0 },
 
             { "name": "segments", "variant": "float", "any": 6.0, "near": 1.0, "far": 16.0 },
@@ -343,9 +343,9 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
 
-            { "name": "rotation", "variant": "float2", "any": [ 0.0, 0.0 ], "near": 0.0, "far": 360.0 },
+            { "name": "rotation", "variant": "float2", "any": [ 0.0, 90.0 ], "near": 0.0, "far": 360.0 },
             { "name": "scale", "variant": "float", "any": 0.091, "near": 0.0, "far": 1.0 },
-            { "name": "stretch", "variant": "float4", "any": [ 0.231, 0.231, 0.231, 0.231 ], "near": 0.0, "far": 1.0 }
+            { "name": "stretch", "variant": "float4", "any": [ 0.5, 0.5, 0.5, 0.5 ], "near": 0.0, "far": 1.0 }
         ]
     },
     {
@@ -415,11 +415,11 @@
         "internal": "stroke.effect",
 
         "controls": [
-            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "tint", "variant": "float_pipette", "any": [ 0.05, 0.05, 0.05 ] },
             { "name": "edge", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
 
             { "name": "thickness", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
-            { "name": "split", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
+            { "name": "split", "variant": "float", "any": 0.35, "near": 0.0, "far": 1.0 },
 
             { "name": "fetches", "variant": "float", "any": 384.0, "near": 96.0, "far": 768.0, "constant": true }
         ]
@@ -473,7 +473,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
 
-            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "tint", "variant": "float_pipette", "any": [ 0.0, 0.0, 0.0 ] },
 
             { "name": "angle", "variant": "float", "any": 135.0, "near": 0.0, "far": 360.0 },
             { "name": "shift", "variant": "float", "any": 0.04, "near": 0.0, "far": 1.0 },
@@ -496,7 +496,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
 
-            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "tint", "variant": "float_pipette", "any": [ 0.0, 0.0, 0.0 ] },
 
             { "name": "angle", "variant": "float", "any": 135.0, "near": 0.0, "far": 360.0 },
             { "name": "shift", "variant": "float", "any": 0.04, "near": 0.0, "far": 1.0 },
@@ -538,9 +538,9 @@
         "internal": "ambient_occlusion.effect",
 
         "controls": [
-            { "name": "force", "variant": "float", "any": 0.25, "near": 0.0, "far": 1.0 },
+            { "name": "force", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
 
-            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "tint", "variant": "float_pipette", "any": [ 0.0, 0.0, 0.0 ] },
 
             { "name": "radius", "variant": "float", "any": 0.333, "near": 0.0, "far": 1.0 },
 
@@ -584,7 +584,7 @@
             { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
             { "name": "saturation", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
             { "name": "posterize", "variant": "float", "any": 0.143, "near": 0.0, "far": 1.0 },
-            { "name": "exposure", "variant": "float", "any": 0.286, "near": 0.0, "far": 1.0 },
+            { "name": "exposure", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
 
             { "name": "feather", "variant": "float", "any": 0.1, "near": 0.0, "far": 1.0 }
         ]
@@ -679,7 +679,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 0.7, "near": 0.0, "far": 1.0 },
 
-            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "tint", "variant": "float_pipette", "any": [ 0.0, 0.0, 0.0 ] },
 
             { "name": "thickness", "variant": "float", "any": 0.097, "near": 0.0, "far": 1.0 },
             { "name": "feather", "variant": "float", "any": 0.293, "near": 0.0, "far": 1.0 },
@@ -691,7 +691,7 @@
         "serial": "ghost",
 
         "name": "Ghost",
-        "description": "Lays a faded, smaller copy of the layer over itself. For echoes, afterimages and doubles.",
+        "description": "Lays a faded copy of the layer over itself at another size. For echoes, afterimages and doubles.",
 
         "tab": "stylize",
         "internal": "ghost.effect",
@@ -702,7 +702,7 @@
             { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
 
             { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
-            { "name": "shrink", "variant": "float", "any": 0.737, "near": 0.0, "far": 1.0 },
+            { "name": "scale", "variant": "float", "any": 0.75, "near": 0.0, "far": 1.0 },
             { "name": "feather", "variant": "float", "any": 0.04, "near": 0.0, "far": 1.0 },
 
             { "name": "stochastic", "variant": "float", "any": 0.5, "near": 0.0, "far": 1.0 },
@@ -721,7 +721,7 @@
         "controls": [
             { "name": "force", "variant": "float", "any": 1.0, "near": 0.0, "far": 1.0 },
 
-            { "name": "tint", "variant": "float_pipette", "any": [ 1.0, 1.0, 1.0 ] },
+            { "name": "tint", "variant": "float_pipette", "any": [ 0.0, 0.0, 0.0 ] },
 
             { "name": "position", "variant": "float2", "any": [ 0.5, 0.5 ], "near": 0.0, "far": 1.0 },
             { "name": "scale", "variant": "float", "any": 0.31, "near": 0.0, "far": 1.0 },

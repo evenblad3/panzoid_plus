@@ -5,23 +5,33 @@
         base_name: "panzoid_plus_inspect",
         store_name: "opened",
         block: 512,
-        save_gap: 250
+        magic_at: 257,
+        name_length: 100,
+        size_at: 124,
+        size_length: 12,
+        flag_at: 156
     };
 
     const signatures = [
-        { head: [ 0x49, 0x44, 0x33 ], suffix: "mp3", kind: "audio/mpeg" },
-        { head: [ 0xff, 0xfb ], suffix: "mp3", kind: "audio/mpeg" },
-        { head: [ 0x4f, 0x67, 0x67, 0x53 ], suffix: "ogg", kind: "audio/ogg" },
-        { head: [ 0x52, 0x49, 0x46, 0x46 ], suffix: "wav", kind: "audio/wav" },
-        { head: [ 0x1a, 0x45, 0xdf, 0xa3 ], suffix: "webm", kind: "video/webm" },
-        { head: [ 0x89, 0x50, 0x4e, 0x47 ], suffix: "png", kind: "image/png" },
-        { head: [ 0xff, 0xd8, 0xff ], suffix: "jpg", kind: "image/jpeg" },
-        { head: [ 0x47, 0x49, 0x46, 0x38 ], suffix: "gif", kind: "image/gif" },
-        { head: [ 0x00, 0x01, 0x00, 0x00 ], suffix: "ttf", kind: "font/ttf" },
-        { head: [ 0x4f, 0x54, 0x54, 0x4f ], suffix: "otf", kind: "font/otf" },
-        { head: [ 0x77, 0x4f, 0x46, 0x46 ], suffix: "woff", kind: "font/woff" },
-        { head: [ 0x77, 0x4f, 0x46, 0x32 ], suffix: "woff2", kind: "font/woff2" }
+        { head: [ 0x49, 0x44, 0x33 ], suffix: "mp3", variant: "audio/mpeg" },
+        { head: [ 0x4f, 0x67, 0x67, 0x53 ], suffix: "ogg", variant: "audio/ogg" },
+        { head: [ 0x66, 0x4c, 0x61, 0x43 ], suffix: "flac", variant: "audio/flac" },
+        { head: [ 0x1a, 0x45, 0xdf, 0xa3 ], suffix: "webm", variant: "video/webm" },
+        { head: [ 0x89, 0x50, 0x4e, 0x47 ], suffix: "png", variant: "image/png" },
+        { head: [ 0xff, 0xd8, 0xff ], suffix: "jpg", variant: "image/jpeg" },
+        { head: [ 0x47, 0x49, 0x46, 0x38 ], suffix: "gif", variant: "image/gif" },
+        { head: [ 0x42, 0x4d ], suffix: "bmp", variant: "image/bmp" },
+        { head: [ 0x00, 0x01, 0x00, 0x00 ], suffix: "ttf", variant: "font/ttf" },
+        { head: [ 0x4f, 0x54, 0x54, 0x4f ], suffix: "otf", variant: "font/otf" },
+        { head: [ 0x77, 0x4f, 0x46, 0x46 ], suffix: "woff", variant: "font/woff" },
+        { head: [ 0x77, 0x4f, 0x46, 0x32 ], suffix: "woff2", variant: "font/woff2" }
     ];
+
+    const riff_variants = {
+        WEBP: { suffix: "webp", variant: "image/webp" },
+        WAVE: { suffix: "wav", variant: "audio/wav" },
+        "AVI ": { suffix: "avi", variant: "video/x-msvideo" }
+    };
 
     const zone = document.getElementById( "drop_zone" );
     const picker = document.getElementById( "drop_file" );
@@ -31,6 +41,8 @@
 
     const empty_text = summary.textContent;
 
+    let reading = 0;
+
     function size_text( count ) {
         if( count < 1024 ) return count + " b";
         if( count < 1024 * 1024 ) return ( count / 1024 ).toFixed( 1 ) + " kb";
@@ -38,7 +50,17 @@
         return ( count / ( 1024 * 1024 ) ).toFixed( 1 ) + " mb";
     }
 
+    function four_at( buffer, from ) {
+        return String.fromCharCode( buffer[ from ] || 0, buffer[ from + 1 ] || 0,
+            buffer[ from + 2 ] || 0, buffer[ from + 3 ] || 0 );
+    }
+
     function signature_of( buffer ) {
+        if( four_at( buffer, 0 ) === "RIFF" ) {
+            return riff_variants[ four_at( buffer, 8 ) ] || null;
+        }
+        if( four_at( buffer, 4 ) === "ftyp" ) return { suffix: "mp4", variant: "video/mp4" };
+
         for( const entry of signatures ) {
             const same = entry.head.every( function ( byte, it ) {
                 return buffer[ it ] === byte;
@@ -47,11 +69,21 @@
             if( same ) return entry;
         }
 
-        const brand = String.fromCharCode( buffer[ 4 ] || 0, buffer[ 5 ] || 0,
-            buffer[ 6 ] || 0, buffer[ 7 ] || 0 );
-        if( brand === "ftyp" ) return { suffix: "mp4", kind: "video/mp4" };
+        if( buffer[ 0 ] === 0xff && ( buffer[ 1 ] & 0xe0 ) === 0xe0 ) {
+            return { suffix: "mp3", variant: "audio/mpeg" };
+        }
 
         return null;
+    }
+
+    function name_safe( wanted, suffix ) {
+        const bare = String( wanted ).split( /[\\/]/ ).pop()
+            .replace( /[\x00-\x1f<>:"|?*]/g, "" ).trim();
+
+        if( !bare || bare === "." || bare === ".." ) return "asset." + suffix;
+        if( bare.toLowerCase().endsWith( "." + suffix ) ) return bare;
+
+        return bare.replace( /\.[^.]*$/, "" ) + "." + suffix;
     }
 
     function field_read( buffer, from, length ) {
@@ -60,6 +92,7 @@
         for( let it = 0; it < length; it++ ) {
             const code = buffer[ from + it ];
             if( !code ) break;
+
             out += String.fromCharCode( code );
         }
 
@@ -76,14 +109,26 @@
     function tar_read( buffer ) {
         const parts = [];
         let at = 0;
+        let cut = false;
+
+        if( four_at( buffer, config.magic_at ) !== "usta" ) {
+            return { parts: parts, cut: false, tar: false };
+        }
 
         while( at + config.block <= buffer.length ) {
-            const name = field_read( buffer, at, 100 );
+            const name = field_read( buffer, at, config.name_length );
             if( !name ) break;
 
-            const size = parseInt( field_read( buffer, at + 124, 12 ).trim(), 8 ) || 0;
-            const flag = buffer[ at + 156 ] || 48;
+            const field = field_read( buffer, at + config.size_at, config.size_length ).trim();
+            const size = parseInt( field, 8 );
+            const flag = buffer[ at + config.flag_at ];
+
             at += config.block;
+
+            if( !isFinite( size ) || size < 0 || at + size > buffer.length ) {
+                cut = true;
+                break;
+            }
 
             if( flag === 48 || flag === 0 ) {
                 parts.push( { name: name, buffer: buffer.subarray( at, at + size ) } );
@@ -92,7 +137,7 @@
             at += Math.ceil( size / config.block ) * config.block;
         }
 
-        return parts;
+        return { parts: parts, cut: cut, tar: true };
     }
 
     async function archive_open( buffer ) {
@@ -133,7 +178,9 @@
         const points = model.vertices || [];
         const faces = model.faces || [];
         const flat_uv = ( model.uvs && model.uvs[ 0 ] ) || [];
+        const normals = model.normals || [];
 
+        const layers = Math.max( ( model.uvs || [] ).length, 1 );
         const lines = [ "# rebuilt by panzoid+" ];
 
         for( let it = 0; it + 2 < points.length; it += 3 ) {
@@ -144,32 +191,55 @@
             lines.push( "vt " + flat_uv[ it ] + " " + flat_uv[ it + 1 ] );
         }
 
+        for( let it = 0; it + 2 < normals.length; it += 3 ) {
+            lines.push( "vn " + normals[ it ] + " " + normals[ it + 1 ]
+                + " " + normals[ it + 2 ] );
+        }
+
         let at = 0;
 
         while( at < faces.length ) {
-            const kind = faces[ at++ ];
-            const corners = ( kind & 1 )? 4: 3;
+            const variant = faces[ at++ ];
+            const corners = ( variant & 1 )? 4: 3;
 
             const index = [];
             for( let one = 0; one < corners; one++ ) index.push( faces[ at++ ] );
 
-            if( kind & 2 ) at++;
-            if( kind & 4 ) at++;
+            if( variant & 2 ) at++;
+            if( variant & 4 ) at += layers;
 
             let uv_index = null;
-            if( kind & 8 ) {
+            if( variant & 8 ) {
                 uv_index = [];
-                for( let one = 0; one < corners; one++ ) uv_index.push( faces[ at++ ] );
+
+                for( let layer = 0; layer < layers; layer++ ) {
+                    for( let one = 0; one < corners; one++ ) {
+                        const got = faces[ at++ ];
+                        if( layer === 0 ) uv_index.push( got );
+                    }
+                }
             }
 
-            if( kind & 16 ) at++;
-            if( kind & 32 ) at += corners;
-            if( kind & 64 ) at++;
-            if( kind & 128 ) at += corners;
+            if( variant & 16 ) at++;
+
+            let normal_index = null;
+            if( variant & 32 ) {
+                normal_index = [];
+                for( let one = 0; one < corners; one++ ) normal_index.push( faces[ at++ ] );
+            }
+
+            if( variant & 64 ) at++;
+            if( variant & 128 ) at += corners;
+
+            if( !flat_uv.length ) uv_index = null;
+            if( !normals.length ) normal_index = null;
 
             lines.push( "f " + index.map( function ( one, where ) {
-                if( !uv_index ) return String( one + 1 );
-                return ( one + 1 ) + "/" + ( uv_index[ where ] + 1 );
+                const uv = uv_index? String( uv_index[ where ] + 1 ): "";
+                const normal = normal_index? String( normal_index[ where ] + 1 ): "";
+
+                if( !uv && !normal ) return String( one + 1 );
+                return ( one + 1 ) + "/" + uv + ( normal? "/" + normal: "" );
             } ).join( " " ) );
         }
 
@@ -194,8 +264,8 @@
         return parsed;
     }
 
-    function file_save( buffer, filename, kind ) {
-        const url = URL.createObjectURL( new Blob( [ buffer ], { type: kind } ) );
+    function file_save( buffer, filename, variant ) {
+        const url = URL.createObjectURL( new Blob( [ buffer ], { type: variant } ) );
 
         const link = document.createElement( "a" );
         link.href = url;
@@ -217,49 +287,77 @@
             }
 
             ask.onupgradeneeded = function () {
-                ask.result.createObjectStore( config.store_name );
+                const base = ask.result;
+
+                if( !base.objectStoreNames.contains( config.store_name ) ) {
+                    base.createObjectStore( config.store_name );
+                }
             };
+
             ask.onsuccess = function () { resolve( ask.result ); };
             ask.onerror = function () { resolve( null ); };
+            ask.onblocked = function () { resolve( null ); };
         } );
     }
 
-    async function store_keep( name, bytes ) {
-        const base = await store_open();
-        if( !base ) return;
+    function store_write( run ) {
+        return store_open().then( function ( base ) {
+            if( !base ) return false;
 
-        try {
-            base.transaction( config.store_name, "readwrite" )
-                .objectStore( config.store_name )
-                .put( { name: name, bytes: bytes }, "last" );
-        } catch( error ) {}
-    }
+            return new Promise( function ( resolve ) {
+                let deal = null;
 
-    async function store_recall() {
-        const base = await store_open();
-        if( !base ) return null;
+                try {
+                    deal = base.transaction( config.store_name, "readwrite" );
+                } catch( error ) {
+                    base.close();
+                    resolve( false );
+                    return;
+                }
 
-        return new Promise( function ( resolve ) {
-            try {
-                const ask = base.transaction( config.store_name, "readonly" )
-                    .objectStore( config.store_name ).get( "last" );
+                deal.oncomplete = function () { base.close(); resolve( true ); };
+                deal.onerror = function () { base.close(); resolve( false ); };
+                deal.onabort = function () { base.close(); resolve( false ); };
 
-                ask.onsuccess = function () { resolve( ask.result || null ); };
-                ask.onerror = function () { resolve( null ); };
-            } catch( error ) {
-                resolve( null );
-            }
+                try {
+                    run( deal.objectStore( config.store_name ) );
+                } catch( error ) {}
+            } );
         } );
     }
 
-    async function store_forget() {
-        const base = await store_open();
-        if( !base ) return;
+    function store_keep( name, bytes ) {
+        return store_write( function ( shop ) {
+            shop.put( { name: name, bytes: bytes }, "last" );
+        } );
+    }
 
-        try {
-            base.transaction( config.store_name, "readwrite" )
-                .objectStore( config.store_name ).delete( "last" );
-        } catch( error ) {}
+    function store_forget() {
+        return store_write( function ( shop ) {
+            shop.delete( "last" );
+        } );
+    }
+
+    function store_recall() {
+        return store_open().then( function ( base ) {
+            if( !base ) return null;
+
+            return new Promise( function ( resolve ) {
+                let ask = null;
+
+                try {
+                    ask = base.transaction( config.store_name, "readonly" )
+                        .objectStore( config.store_name ).get( "last" );
+                } catch( error ) {
+                    base.close();
+                    resolve( null );
+                    return;
+                }
+
+                ask.onsuccess = function () { base.close(); resolve( ask.result || null ); };
+                ask.onerror = function () { base.close(); resolve( null ); };
+            } );
+        } );
     }
 
     function row_add( title, note ) {
@@ -303,93 +401,102 @@
             if( part.name === "project" || part.name === "meta" ) continue;
 
             const asset = assets[ part.name ];
+            const wanted = asset && asset.filename;
             const model = model_of( part.buffer );
 
             if( model ) {
-                const body = new TextEncoder().encode( obj_from_model( model ) );
                 counts.obj = ( counts.obj || 0 ) + 1;
 
                 found.push( {
-                    named: ( asset && asset.filename?
-                        asset.filename.replace( /\.[^.]*$/, "" ):
-                        stem + " model " + counts.obj ) + ".obj",
-                    buffer: body,
-                    kind: "model/obj"
+                    named: name_safe( wanted || stem + " model " + counts.obj, "obj" ),
+                    buffer: new TextEncoder().encode( obj_from_model( model ) ),
+                    variant: "model/obj"
                 } );
                 continue;
             }
 
             const signature = signature_of( part.buffer );
-            if( !signature ) continue;
+            const suffix = signature? signature.suffix: "bin";
 
-            counts[ signature.suffix ] = ( counts[ signature.suffix ] || 0 ) + 1;
+            counts[ suffix ] = ( counts[ suffix ] || 0 ) + 1;
 
             found.push( {
-                named: ( asset && asset.filename )
-                    || stem + " " + signature.suffix + " " + counts[ signature.suffix ]
-                        + "." + signature.suffix,
+                named: name_safe( wanted || stem + " " + suffix + " " + counts[ suffix ],
+                    suffix ),
                 buffer: part.buffer,
-                kind: signature.kind
+                variant: signature? signature.variant: "application/octet-stream",
+                unknown: !signature
             } );
         }
 
         return found;
     }
 
-    function rows_show( name, size, parts ) {
+    function rows_show( name, size, parts, cut ) {
         tree.textContent = "";
 
         const listed = media_list( name.replace( /\.[^.]*$/, "" ), parts );
+        const strange = listed.filter( function ( entry ) { return entry.unknown; } ).length;
+
+        clear.hidden = false;
 
         if( !listed.length ) {
             summary.textContent = name + " holds no media that can be pulled out";
-            clear.hidden = false;
             return;
         }
 
-        summary.textContent = name + ", " + size_text( size );
-        clear.hidden = false;
+        summary.textContent = name + ", " + size_text( size )
+            + ( cut? ", cut short": "" )
+            + ( strange? ", " + strange + " not recognised": "" );
 
         for( const entry of listed ) {
             const line = row_add( entry.named, size_text( entry.buffer.length ) );
 
             save_add( line, "save", function () {
-                file_save( entry.buffer, entry.named, entry.kind );
+                file_save( entry.buffer, entry.named, entry.variant );
             } );
         }
 
         const all = row_add( "", listed.length + " in all" );
 
         save_add( all, "save every file", function () {
-            listed.forEach( function ( entry, it ) {
-                setTimeout( function () {
-                    file_save( entry.buffer, entry.named, entry.kind );
-                }, it * config.save_gap );
-            } );
+            for( const entry of listed ) file_save( entry.buffer, entry.named, entry.variant );
         } );
     }
 
     async function bytes_open( name, bytes, keep ) {
+        const mine = ++reading;
+
         tree.textContent = "";
         summary.textContent = "reading " + name;
 
-        let parts;
+        let read;
         try {
-            parts = await archive_open( bytes );
+            read = await archive_open( bytes );
         } catch( error ) {
+            if( mine !== reading ) return;
+
             summary.textContent = name + " is not something clipmaker wrote";
             clear.hidden = false;
             return;
         }
 
-        if( !parts.length ) {
+        if( mine !== reading ) return;
+
+        if( !read.tar ) {
+            summary.textContent = name + " is not a .pz, there is no tar inside it";
+            clear.hidden = false;
+            return;
+        }
+
+        if( !read.parts.length ) {
             summary.textContent = "nothing readable inside " + name;
             clear.hidden = false;
             return;
         }
 
         try {
-            rows_show( name, bytes.length, parts );
+            rows_show( name, bytes.length, read.parts, read.cut );
         } catch( error ) {
             summary.textContent = "could not make sense of " + name;
             clear.hidden = false;
@@ -444,13 +551,19 @@
     } );
 
     picker.addEventListener( "change", function () {
-        if( picker.files && picker.files.length ) file_open( picker.files[ 0 ] );
+        const chosen = picker.files && picker.files.length? picker.files[ 0 ]: null;
+
+        picker.value = "";
+        if( chosen ) file_open( chosen );
     } );
 
     clear.addEventListener( "click", function () {
+        reading++;
+
         tree.textContent = "";
         summary.textContent = empty_text;
         clear.hidden = true;
+        picker.value = "";
 
         store_forget();
     } );
@@ -459,7 +572,22 @@
         document.addEventListener( variant, function ( event ) { event.preventDefault(); } );
     } );
 
-    store_recall().then( function ( held ) {
-        if( held && held.bytes ) bytes_open( held.name, held.bytes, false );
+    let restored = false;
+
+    function restore_try() {
+        if( restored ) return;
+        restored = true;
+
+        store_recall().then( function ( held ) {
+            if( held && held.bytes && !reading ) bytes_open( held.name, held.bytes, false );
+        } );
+    }
+
+    document.addEventListener( "DOMContentLoaded", function () {
+        const pane = document.getElementById( "pane_inspect" );
+        const tab = document.getElementById( "tab_inspect" );
+
+        if( tab ) tab.addEventListener( "click", restore_try );
+        if( pane && !pane.classList.contains( "pane_off" ) ) restore_try();
     } );
 } )();

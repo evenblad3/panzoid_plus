@@ -3,7 +3,7 @@ uniform float force;
 uniform vec3 tint;
 
 uniform vec2 position;
-uniform float shrink;
+uniform float scale;
 uniform float feather;
 
 uniform float stochastic;
@@ -14,8 +14,7 @@ void main() {
     vec2 spread = remap_float( feather, 0.0, 0.25 ) / get_texel_round();
 
     vec2 placed = remap_float( position, -1.0, 2.0 );
-    vec2 pulled = placed
-        + ( vUv - placed ) * max( 1.0 - remap_float( shrink, -1.0, 0.9 ), c_epsilon );
+    vec2 pulled = placed + ( vUv - placed ) * exp2( remap_signed( scale, 2.0 ) );
 
     float count_inverse = 1.0 / float( fetches );
     vec4 copy = vec4( 0.0 );

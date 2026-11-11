@@ -24,7 +24,7 @@ void main() {
         * vec2( cos( folded ), sin( folded ) ) * radius;
 
     spot.x /= aspect;
-    spot = spot / max( remap_float( scale, 0.1, 5.0 ), vec2( c_epsilon ) )
+    spot = spot / exp2( remap_signed( scale, 2.0 ) )
         + remap_signed( position, 1.0 ) + 0.5;
 
     gl_FragColor = mix( sample_texel( vUv ),

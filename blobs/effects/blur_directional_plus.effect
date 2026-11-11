@@ -18,7 +18,7 @@ void main() {
     for( int it = 0; it < int( fetches ); ++it ) {
         vec4 texel = sample_texel( vUv + along
             * ( ( float( it ) + get_stochastic_scatter( stochastic ) ) * span_inverse - 0.5 ) );
-        float weight = pow( length( texel.xyz ), remap_float( highlight, 0.5, 4.0 ) );
+        float weight = pow( length( texel.xyz ), exp2( remap_signed( highlight, 2.0 ) ) );
 
         total += texel * weight;
         weight_total += weight;

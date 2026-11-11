@@ -17,7 +17,7 @@ void main() {
         float at = ( float( it ) + get_stochastic_scatter( stochastic ) ) * count_inverse;
 
         vec4 texel = sample_texel( vUv + toward * at * at * force );
-        float weight = pow( length( texel.xyz ), remap_float( highlight, 0.5, 4.0 ) );
+        float weight = pow( length( texel.xyz ), exp2( remap_signed( highlight, 2.0 ) ) );
 
         total += texel * weight;
         weight_total += weight;
