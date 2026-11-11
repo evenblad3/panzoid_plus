@@ -48,100 +48,80 @@
                     placeholder = "Search" >
                 <span id = "match_count" class = "match_count" ></span >
             </div >
+
+            <div id = "effect_groups" ></div >
             <div id = "no_matches" class = "empty no_select" hidden >nothing matches</div >
         </div >
 
         <div class = "pane_off" id = "pane_tweaks" >
-            <div class = "tweak_note" >
-                Tweaks change how Clipmaker runs on this machine. They are never saved into
-                your clip, so nobody who opens your project gets them.
-                <span class = "tweak_warn" >Reload the Clipmaker page after you change one, and
-                save your project first, because a reload drops anything unsaved.</span >
-                Some of them hold on to parts of Clipmaker that are not meant to be used from
-                outside. If the site changes and this extension has not been updated for a
-                while, a tweak can stop working without saying so.
-            </div >
+            <div class = "note" >Reload the Clipmaker page after you change a tweak, and save
+            your project first, because a reload drops anything unsaved.</div >
 
             <label class = "tweak" >
+                <input type = "checkbox" id = "tweak_anisotropy" class = "tweak_toggle" >
                 <span >Anisotropic filtering
                     <span class = "tweak_hint" >A texture seen at a sharp angle is sampled
                     along the direction it is stretched, not in a square. Floors, walls and
                     any surface running away from the camera stop going blurry.</span >
                 </span >
-                <select id = "tweak_anisotropy" >
-                    <option value = "on" >Enable</option >
-                    <option value = "off" >Disable</option >
-                </select >
             </label >
 
             <label class = "tweak" >
+                <input type = "checkbox" id = "tweak_correct_uv" class = "tweak_toggle" >
                 <span >Correct uv calculation
                     <span class = "tweak_hint" >Clipmaker spreads texture coordinates on
                     extruded text over the whole box around it, so letters of different widths
                     get stretched by different amounts. This measures each face on its own, so
                     the texture keeps one scale across the word.</span >
                 </span >
-                <select id = "tweak_correct_uv" >
-                    <option value = "on" >Enable</option >
-                    <option value = "off" >Disable</option >
-                </select >
             </label >
 
             <label class = "tweak" >
+                <input type = "checkbox" id = "tweak_mount_effects" class = "tweak_toggle" >
                 <span >Effects inside Clipmaker
                     <span class = "tweak_hint" >Adds every Panzoid+ effect to the editor's own
                     effect list, so you can pick one without coming back here to copy
                     it.</span >
                 </span >
-                <select id = "tweak_mount_effects" >
-                    <option value = "on" >Enable</option >
-                    <option value = "off" >Disable</option >
-                </select >
             </label >
 
             <label class = "tweak" >
+                <input type = "checkbox" id = "tweak_precise_values" class = "tweak_toggle" >
                 <span >Precise values
                     <span class = "tweak_hint" >Number fields show and take three decimals
                     instead of rounding to whole units. Needed for anything that moves slowly
                     or has to sit a little off centre.</span >
                 </span >
-                <select id = "tweak_precise_values" >
-                    <option value = "on" >Enable</option >
-                    <option value = "off" >Disable</option >
-                </select >
             </label >
 
             <label class = "tweak" >
+                <input type = "checkbox" id = "tweak_full_preview" class = "tweak_toggle" >
                 <span >Full resolution preview
                     <span class = "tweak_hint" >Draws the viewport at the project resolution
                     instead of the size of the panel, so what you see is what the export will
                     hold. Costs frame rate on big projects.</span >
                 </span >
-                <select id = "tweak_full_preview" >
-                    <option value = "on" >Enable</option >
-                    <option value = "off" >Disable</option >
-                </select >
             </label >
 
+            <div class = "note" >Nothing here is saved into your clip. A tweak can stop
+            working if the site changes before this extension is updated.</div >
         </div >
 
         <div class = "pane_off" id = "pane_inspect" >
-            <div class = "drop_zone" id = "drop_zone" >
-                drop a .pz here, or click to pick one
-            </div >
-            <input type = "file" id = "drop_file" accept = ".pz" hidden >
-
             <div class = "summary_row" >
-                <div class = "inspect_summary" id = "inspect_summary" >A .pz file is a gzipped
-                tar. Inside sit the project, which describes the whole scene, a small meta
-                file, and every sound, image, font and model the project uses, each one stored
-                under the sha256 of its own contents rather than under its name. Drop one here
-                and the media comes back out named the way you imported it, with models
-                rebuilt as .obj.</div >
+                <div class = "inspect_summary" id = "inspect_summary" >A .pz is a gzipped tar
+                that keeps every asset under its sha256. Media comes back out under the name
+                you imported it with, models as .obj.</div >
                 <button type = "button" id = "inspect_clear" class = "text_button" hidden >
                     clear
                 </button >
             </div >
+
+            <div class = "drop_zone" id = "drop_zone" >
+                drop a .pz here, or click to pick one
+            </div >
+
+            <input type = "file" id = "drop_file" accept = ".pz" hidden >
 
             <div class = "tree" id = "inspect_tree" ></div >
         </div >

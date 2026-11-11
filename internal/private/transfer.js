@@ -5,6 +5,8 @@ extension.ready.push( function () {
     const clipmaker =
         /^https:\/\/([a-z0-9-]+\.)?panzoid\.com\/(tools|legacy)\/gen3\/clipmaker/i;
 
+    const groups = document.getElementById( "effect_groups" );
+
     function editor_send( clip ) {
         chrome.tabs.query( { active: true, currentWindow: true }, function ( tabs ) {
             if( !tabs.length || !clipmaker.test( tabs[ 0 ].url || "" ) ) return;
@@ -22,15 +24,16 @@ extension.ready.push( function () {
         } catch( error ) {}
     }
 
-    document.querySelectorAll( ".effect_button" ).forEach( function ( button ) {
+    groups.addEventListener( "click", function ( event ) {
+        const button = event.target.closest( ".effect_button" );
+        if( !button ) return;
+
         const effect = extension.effect.effect_by_serial( button.dataset.serial );
         if( !effect ) return;
 
-        button.addEventListener( "click", function () {
-            const clip = extension.effect.build_json( effect );
+        const clip = extension.effect.build_json( effect );
 
-            editor_send( clip );
-            clipboard_send( clip );
-        } );
+        editor_send( clip );
+        clipboard_send( clip );
     } );
 } );

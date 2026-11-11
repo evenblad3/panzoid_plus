@@ -11,32 +11,39 @@
         full_preview: false
     };
 
+    const state = Object.assign( {}, defaults );
     const pickers = {};
+    const touched = {};
+
+    function settings_save() {
+        chrome.storage.local.set( { [ storage_key ]: state } );
+    }
 
     Object.keys( defaults ).forEach( function ( name ) {
         const picker = document.getElementById( "tweak_" + name );
-        if( picker ) pickers[ name ] = picker;
+        if( !picker ) return;
+
+        pickers[ name ] = picker;
+        picker.checked = state[ name ];
+
+        picker.addEventListener( "change", function () {
+            touched[ name ] = true;
+            state[ name ] = picker.checked;
+
+            settings_save();
+        } );
     } );
 
-    function settings_save() {
-        const settings = {};
-
-        Object.keys( defaults ).forEach( function ( name ) {
-            settings[ name ] = pickers[ name ]?
-                pickers[ name ].value === "on": defaults[ name ];
-        } );
-
-        chrome.storage.local.set( { [ storage_key ]: settings } );
-    }
-
     chrome.storage.local.get( storage_key, function ( stored ) {
-        const saved = stored[ storage_key ] || {};
+        const saved = ( stored || {} )[ storage_key ] || {};
 
         Object.keys( pickers ).forEach( function ( name ) {
-            const on = typeof saved[ name ] === "boolean"? saved[ name ]: defaults[ name ];
+            if( touched[ name ] || typeof saved[ name ] !== "boolean" ) return;
 
-            pickers[ name ].value = on? "on": "off";
-            pickers[ name ].addEventListener( "change", settings_save );
+            state[ name ] = saved[ name ];
+            pickers[ name ].checked = saved[ name ];
         } );
+
+        if( Object.keys( touched ).length ) settings_save();
     } );
 } )();

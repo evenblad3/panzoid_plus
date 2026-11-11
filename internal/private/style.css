@@ -23,6 +23,8 @@
 
     --size: 16px;
     --small: 13px;
+    --title: 18px;
+    --press: #3f3f3f;
     --pad: 3.25px 12px;
     --line-w: 3px;
     --rail-w: 32px;
@@ -93,7 +95,7 @@ body {
     width: 100%;
     padding: 0;
     color: var( --rail-text );
-    font-size: 15px;
+    font-size: var( --size );
     writing-mode: vertical-rl;
 }
 
@@ -121,26 +123,38 @@ input {
     background: transparent;
 }
 
-button:focus,
-input:focus,
+button:focus-visible {
+    outline: var( --spine ) solid var( --accent-light );
+    outline-offset: -2px;
+}
+
+.search_field:focus {
+    border-left-color: var( --accent-light );
+}
+
 .tweak:focus-within {
     border-color: var( --accent );
 }
 
 .text_button {
     padding: 0 6px;
-    color: var( --accent-light );
     font-size: var( --small );
 }
 
-.text_button:hover {
+.text_button,
+.readme a {
+    color: var( --accent-light );
+}
+
+.text_button:hover,
+.readme a:hover {
     color: var( --text );
 }
 
 .title_row,
 .group_name,
-.tweak_note,
-.effect_button,
+.note,
+.effect_row,
 .tweak {
     padding: var( --pad );
     border-bottom: var( --line-w ) solid var( --line );
@@ -162,7 +176,7 @@ input:focus,
 .title_name {
     margin: 0;
     color: var( --text );
-    font-size: 18px;
+    font-size: var( --title );
     font-weight: 500;
 }
 
@@ -194,19 +208,34 @@ input:focus,
     pointer-events: none;
 }
 
+.effect_row {
+    display: grid;
+    grid-template-columns: minmax( 0, 1fr ) min-content;
+    align-items: start;
+    gap: 6px;
+}
+
 .effect_button {
-    display: block;
-    width: 100%;
+    padding: 0;
     text-align: left;
 }
 
-.effect_button:active {
-    background-color: #3f3f3f;
+.effect_star {
+    padding: 4px 2px 0;
+    color: var( --dim );
+    line-height: 1;
+}
+
+.effect_star_on {
+    color: var( --accent-light );
+}
+
+.effect_row:active {
+    background-color: var( --press );
     background-image: none;
 }
 
-.group_name:hover,
-.effect_button:hover,
+.effect_row:hover,
 .tweak:hover {
     background-color: var( --hover );
     background-image: var( --hover-grad );
@@ -227,18 +256,12 @@ input:focus,
     text-align: center;
 }
 
-.tweak_note {
-    color: var( --text );
-    font-size: 15px;
+.note {
+    color: var( --dim );
+    font-size: var( --small );
     line-height: 1.45;
     background-color: var( --header );
     background-image: var( --header-grad );
-}
-
-.tweak_warn {
-    display: block;
-    margin: 8px 0;
-    color: var( --text );
 }
 
 .tweak {
@@ -251,30 +274,32 @@ input:focus,
     border-bottom-color: var( --line );
 }
 
-.tweak select {
-    order: -1;
-    padding: 1px 4px;
-    color: var( --text );
-    font: inherit;
-    font-size: var( --small );
-    accent-color: var( --accent );
+.tweak_toggle {
+    appearance: none;
+    width: 28px;
+    height: 16px;
+    padding: 2px;
     background-color: var( --control-bg );
     background-image: var( --control-grad );
     border: 1px solid var( --control-line );
 }
 
-.tweak select:focus {
+.tweak_toggle:before {
+    display: block;
+    width: 10px;
+    height: 10px;
+    background-color: var( --dim );
+    content: "";
+}
+
+.tweak_toggle:checked {
+    background-image: var( --rail-on-grad );
     border-color: var( --accent );
 }
 
-.tweak select option {
-    color: var( --text );
-    background-color: var( --control-bg );
-}
-
-.tweak select option:checked {
-    color: var( --text );
-    background-color: var( --accent-dark );
+.tweak_toggle:checked:before {
+    margin-left: 12px;
+    background-color: var( --rail-on-text );
 }
 
 .drop_zone {
@@ -299,12 +324,14 @@ input:focus,
     align-items: flex-start;
     justify-content: space-between;
     gap: 6px;
-    border-bottom: var( --line-w ) solid var( --seam );
+    background-color: var( --header );
+    background-image: var( --header-grad );
+    box-shadow: var( --row-edge );
 }
 
 .inspect_summary {
     padding: var( --pad );
-    color: var( --text );
+    color: var( --dim );
     font-size: var( --small );
     line-height: 1.45;
 }
@@ -315,7 +342,7 @@ input:focus,
 }
 
 .tree {
-    font-size: 13px;
+    font-size: var( --small );
     line-height: 1.45;
 }
 
@@ -358,8 +385,7 @@ input:focus,
 }
 
 .readme a {
-    color: var( --accent-light );
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .review_row {

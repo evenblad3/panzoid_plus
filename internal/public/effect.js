@@ -2,10 +2,10 @@ window.extension = window.extension || {};
 
 extension.tabs = {
     blur: "Blur & Sharpen",
+    perspective: "Perspective",
     color: "Color Correction",
     distort: "Distort",
     generate: "Generate",
-    perspective: "Perspective",
     stylize: "Stylize"
 };
 

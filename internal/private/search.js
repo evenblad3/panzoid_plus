@@ -7,10 +7,10 @@ extension.ready.push( function () {
     const count = document.getElementById( "match_count" );
 
     function visible_in( box ) {
-        const buttons = box.querySelectorAll( ".effect_button" );
+        const rows = box.querySelectorAll( ".effect_row" );
 
-        for( let it = 0; it < buttons.length; ++it ) {
-            if( buttons[ it ].style.display !== "none" ) return buttons[ it ];
+        for( let it = 0; it < rows.length; ++it ) {
+            if( rows[ it ].style.display !== "none" ) return rows[ it ].firstElementChild;
         }
 
         return null;
@@ -20,14 +20,15 @@ extension.ready.push( function () {
         const term = field.value.trim().toLowerCase();
         let found = 0;
 
-        document.querySelectorAll( ".effect_button" ).forEach( function ( button ) {
+        document.querySelectorAll( ".effect_row" ).forEach( function ( row ) {
+            const button = row.firstElementChild;
             const name = button.firstChild.textContent.toLowerCase();
             const description = button.lastElementChild?
                 button.lastElementChild.textContent.toLowerCase(): "";
 
             const hit = !term || ( name + " " + description ).indexOf( term ) !== -1;
 
-            button.style.display = hit? "": "none";
+            row.style.display = hit? "": "none";
             if( hit ) ++found;
         } );
 
@@ -43,6 +44,8 @@ extension.ready.push( function () {
         count.textContent = term? String( found ): "";
     }
 
+    extension.filter = filter;
+
     field.addEventListener( "input", filter );
 
     field.addEventListener( "keydown", function ( event ) {
@@ -52,7 +55,7 @@ extension.ready.push( function () {
             return;
         }
 
-        if( event.key !== "Enter" ) return;
+        if( event.key !== "Enter" || !field.value.trim() ) return;
 
         const button = visible_in( document );
         if( button ) button.click();

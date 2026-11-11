@@ -7,22 +7,49 @@
         } );
     }
 
+    function fail( error ) {
+        const groups = document.getElementById( "effect_groups" );
+        if( !groups ) return;
+
+        const note = document.createElement( "div" );
+
+        note.className = "empty no_select";
+        note.textContent = "the effect list did not load: "
+            + ( ( error && error.message ) || String( error ) );
+
+        groups.appendChild( note );
+    }
+
     function run() {
         ( extension.ready || [] ).forEach( function ( step ) {
             try {
                 step();
-            } catch( error ) {}
+            } catch( error ) {
+                fail( error );
+            }
         } );
     }
 
-    extension.catalogue.read_all( read ).then( function ( parts ) {
-        extension.catalogue.install( parts );
-
+    function start() {
         if( document.readyState === "loading" ) {
             document.addEventListener( "DOMContentLoaded", run, { once: true } );
             return;
         }
 
         run();
+    }
+
+    extension.catalogue.read_all( read ).then( function ( parts ) {
+        extension.catalogue.install( parts );
+        start();
+    } ).catch( function ( error ) {
+        if( document.readyState === "loading" ) {
+            document.addEventListener( "DOMContentLoaded", function () {
+                fail( error );
+            }, { once: true } );
+            return;
+        }
+
+        fail( error );
     } );
 } )();
